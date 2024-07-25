@@ -1,0 +1,18 @@
+C4Context
+    title System Context Diagram for Copper Print Gallery System
+
+    Person(public_user, "Public User", "A person viewing the gallery anonymously")
+    Person(artist, "Artist", "The artist managing the gallery content")
+
+    System(copper_print_gallery, "Copper Print Gallery System", "Allows users to view artworks and the artist to manage the gallery")
+
+    System_Ext(cdn, "Content Delivery Network", "Serves optimized images and static assets")
+    System_Ext(keycloak, "Keycloak", "Handles authentication and authorization")
+
+    Rel(public_user, copper_print_gallery, "Views artworks, searches gallery")
+    Rel(artist, copper_print_gallery, "Manages artworks, updates gallery")
+    
+    Rel(copper_print_gallery, cdn, "Retrieves and serves optimized images and assets")
+    Rel(copper_print_gallery, keycloak, "Authenticates and authorizes artist")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")

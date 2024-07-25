@@ -1,0 +1,25 @@
+# schemas.yaml
+Gallery:
+  $ref: './schemas/gallery.yaml#/Gallery'
+GalleryCreate:
+  $ref: './schemas/gallery.yaml#/GalleryCreate'
+GalleryUpdate:
+  $ref: './schemas/gallery.yaml#/GalleryUpdate'
+GalleryList:
+  $ref: './schemas/gallery.yaml#/GalleryList'
+GalleryDetail:
+  $ref: './schemas/gallery.yaml#/GalleryDetail'
+Print:
+  $ref: './schemas/print.yaml#/Print'
+PrintCreate:
+  $ref: './schemas/print.yaml#/PrintCreate'
+PrintUpdate:
+  $ref: './schemas/print.yaml#/PrintUpdate'
+PrintList:
+  $ref: './schemas/print.yaml#/PrintList'
+PrintDetail:
+  $ref: './schemas/print.yaml#/PrintDetail'
+PrintSummary:
+  $ref: './schemas/print.yaml#/PrintSummary'
+Error:
+  $ref: './schemas/error.yaml#/Error'

@@ -1,0 +1,142 @@
+# schemas/print.yaml
+Print:
+  type: object
+  properties:
+    id:
+      type: integer
+    title:
+      type: string
+    description:
+      type: string
+    technique:
+      type: string
+    plateType:
+      type: string
+    dimensions:
+      type: string
+    year:
+      type: integer
+    editionSize:
+      type: integer
+    paperType:
+      type: string
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+PrintCreate:
+  type: object
+  required:
+    - title
+    - technique
+    - plateType
+    - dimensions
+    - year
+    - editionSize
+  properties:
+    title:
+      type: string
+    description:
+      type: string
+    technique:
+      type: string
+    plateType:
+      type: string
+    dimensions:
+      type: string
+    year:
+      type: integer
+    editionSize:
+      type: integer
+    paperType:
+      type: string
+    translations:
+      type: object
+      properties:
+        da:
+          type: object
+          properties:
+            title:
+              type: string
+            description:
+              type: string
+
+PrintUpdate:
+  type: object
+  properties:
+    title:
+      type: string
+    description:
+      type: string
+    technique:
+      type: string
+    plateType:
+      type: string
+    dimensions:
+      type: string
+    year:
+      type: integer
+    editionSize:
+      type: integer
+    paperType:
+      type: string
+    artistNotes:
+      type: string
+    translations:
+      type: object
+      properties:
+        da:
+          type: object
+          properties:
+            title:
+              type: string
+            description:
+              type: string
+
+PrintList:
+  type: object
+  properties:
+    prints:
+      type: array
+      items:
+        $ref: '#/PrintSummary'
+    totalCount:
+      type: integer
+    currentPage:
+      type: integer
+    totalPages:
+      type: integer
+
+PrintDetail:
+  allOf:
+    - $ref: '#/Print'
+    - type: object
+      properties:
+        editionNumber:
+          type: integer
+        inkType:
+          type: string
+        printingPress:
+          type: string
+        artistNotes:
+          type: string
+        imageUrls:
+          type: object
+          properties:
+            thumbnail:
+              type: string
+            full:
+              type: string
+
+PrintSummary:
+  type: object
+  properties:
+    id:
+      type: integer
+    title:
+      type: string
+    thumbnailUrl:
+      type: string

@@ -1,0 +1,80 @@
+# schemas/gallery.yaml
+Gallery:
+  type: object
+  properties:
+    id:
+      type: integer
+    title:
+      type: string
+    description:
+      type: string
+    printCount:
+      type: integer
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+GalleryCreate:
+  type: object
+  required:
+    - title
+  properties:
+    title:
+      type: string
+    description:
+      type: string
+    translations:
+      type: object
+      properties:
+        da:
+          type: object
+          properties:
+            title:
+              type: string
+            description:
+              type: string
+
+GalleryUpdate:
+  type: object
+  properties:
+    title:
+      type: string
+    description:
+      type: string
+    translations:
+      type: object
+      properties:
+        da:
+          type: object
+          properties:
+            title:
+              type: string
+            description:
+              type: string
+
+GalleryList:
+  type: object
+  properties:
+    galleries:
+      type: array
+      items:
+        $ref: '#/Gallery'
+    totalCount:
+      type: integer
+    currentPage:
+      type: integer
+    totalPages:
+      type: integer
+
+GalleryDetail:
+  allOf:
+    - $ref: '#/Gallery'
+    - type: object
+      properties:
+        prints:
+          type: array
+          items:
+            $ref: './print.yaml#/PrintSummary'

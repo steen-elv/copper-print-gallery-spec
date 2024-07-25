@@ -1,0 +1,87 @@
+erDiagram
+    ARTIST ||--o{ GALLERY : creates
+    GALLERY ||--o{ GALLERY_ARTWORK : contains
+    GALLERY_ARTWORK }o--|| ARTWORK : references
+    ARTWORK ||--o{ IMAGE : has
+    ARTWORK ||--|| ARTWORK_METADATA : has
+    TAG }o--o{ ARTWORK : categorizes
+
+    ARTIST {
+        int id PK
+        string username
+        string email
+    }
+
+    GALLERY {
+        int id PK
+        int artist_id FK
+        string name_en
+        string name_da
+        text description_en
+        text description_da
+        datetime created_at
+        datetime updated_at
+    }
+
+    GALLERY_ARTWORK {
+        int gallery_id PK,FK
+        int artwork_id PK,FK
+        int order
+        text description_en
+        text description_da
+    }
+
+    ARTWORK {
+        int id PK
+        datetime created_at
+        datetime updated_at
+    }
+
+    IMAGE {
+        int id PK
+        int artwork_id FK
+        string original_filename
+        string storage_path
+        int width
+        int height
+        string format
+        int file_size
+        string version
+        json exif_data
+    }
+
+    ARTWORK_METADATA {
+        int id PK
+        string title_en
+        string title_da
+        string artist_name
+        int year_created
+        string medium
+        string technique
+        string dimensions
+        string edition_info
+        string subject_matter_en
+        string subject_matter_da
+        string style_movement
+        string plate_material
+        string paper_type
+        string ink_type
+        string printing_press
+        text provenance_history_en
+        text provenance_history_da
+        text conservation_info_en
+        text conservation_info_da
+        string location
+        string availability
+        decimal price
+        text copyright_info_en
+        text copyright_info_da
+        text artist_statement_en
+        text artist_statement_da
+    }
+
+    TAG {
+        int id PK
+        string name_en
+        string name_da
+    }

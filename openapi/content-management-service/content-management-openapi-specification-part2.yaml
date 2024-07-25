@@ -1,0 +1,177 @@
+title: "Nyhavn Canal"
+                technique: "Aquatint"
+                year: 2023
+                dimensions: "25cm x 35cm"
+                thumbnailUrl: "https://cdn.copperprintgallery.com/thumbnails/nyhavn-canal-aquatint.jpg"
+            totalCount: 50
+            currentPage: 1
+            totalPages: 5
+
+    PrintResponse:
+      description: Successful response with print details
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Print'
+          example:
+            id: 101
+            title: "The Little Mermaid"
+            description: "An intricate etching of the iconic Little Mermaid statue in Copenhagen harbor"
+            technique: "Etching"
+            plateType: "Copper"
+            dimensions: "30cm x 40cm"
+            year: 2023
+            editionSize: 100
+            paperType: "Hahnemühle"
+            createdAt: "2023-07-01T10:00:00Z"
+            updatedAt: "2023-07-01T10:00:00Z"
+
+    PrintDetailResponse:
+      description: Successful response with detailed print information
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PrintDetail'
+          example:
+            id: 101
+            title: "The Little Mermaid"
+            description: "An intricate etching of the iconic Little Mermaid statue in Copenhagen harbor"
+            technique: "Etching"
+            plateType: "Copper"
+            dimensions: "30cm x 40cm"
+            year: 2023
+            editionSize: 100
+            editionNumber: 5
+            paperType: "Hahnemühle"
+            inkType: "Oil-based"
+            printingPress: "Etching Press Model X"
+            artistNotes: "Inspired by early morning light on the statue"
+            imageUrls:
+              thumbnail: "https://cdn.copperprintgallery.com/thumbnails/little-mermaid-etching.jpg"
+              full: "https://cdn.copperprintgallery.com/full/little-mermaid-etching.jpg"
+            createdAt: "2023-07-01T10:00:00Z"
+            updatedAt: "2023-07-01T10:00:00Z"
+
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "BAD_REQUEST"
+              message: "The request was invalid or cannot be served."
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "UNAUTHORIZED"
+              message: "Authentication is required and has failed or has not been provided."
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "FORBIDDEN"
+              message: "The request is understood, but it has been refused or access is not allowed."
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "RESOURCE_NOT_FOUND"
+              message: "The requested resource could not be found."
+
+  requestBodies:
+    GalleryCreate:
+      description: Request body for creating a new gallery
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GalleryCreate'
+          example:
+            title: "Aquatint Seascapes"
+            description: "A collection of copper plate aquatints featuring Danish coastal scenes"
+            translations:
+              da:
+                title: "Akvatinte Havlandskaber"
+                description: "En samling af kobberpladeakvatinter med danske kystscener"
+
+    GalleryUpdate:
+      description: Request body for updating an existing gallery
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GalleryUpdate'
+          example:
+            title: "Updated Aquatint Seascapes"
+            description: "An updated collection of copper plate aquatints featuring Danish coastal scenes"
+            translations:
+              da:
+                title: "Opdaterede Akvatinte Havlandskaber"
+                description: "En opdateret samling af kobberpladeakvatinter med danske kystscener"
+
+    PrintCreate:
+      description: Request body for creating a new print
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PrintCreate'
+          example:
+            title: "Sunset at Skagen"
+            description: "A vibrant copper plate etching capturing the famous Skagen light"
+            technique: "Etching"
+            plateType: "Copper"
+            dimensions: "40cm x 50cm"
+            year: 2023
+            editionSize: 50
+            paperType: "Somerset Velvet"
+            translations:
+              da:
+                title: "Solnedgang ved Skagen"
+                description: "En levende kobberpladeradering, der indfanger det berømte Skagen-lys"
+
+    PrintUpdate:
+      description: Request body for updating an existing print
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PrintUpdate'
+          example:
+            title: "Dusk at Skagen"
+            description: "An updated copper plate etching showcasing the twilight at Skagen"
+            technique: "Etching and Aquatint"
+            plateType: "Copper"
+            dimensions: "40cm x 50cm"
+            year: 2023
+            editionSize: 50
+            paperType: "Hahnemühle"
+            artistNotes: "Refined to capture the subtle hues of twilight"
+            translations:
+              da:
+                title: "Skumring ved Skagen"
+                description: "En opdateret kobberpladeradering, der viser tusmørket ved Skagen"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

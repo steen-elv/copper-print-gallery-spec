@@ -1,0 +1,43 @@
+# requestBodies/prints.yaml
+PrintCreate:
+  description: Request body for creating a new print
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/print.yaml#/PrintCreate'
+      example:
+        title: "Sunset at Skagen"
+        description: "A vibrant copper plate etching capturing the famous Skagen light"
+        technique: "Etching"
+        plateType: "Copper"
+        dimensions: "40cm x 50cm"
+        year: 2023
+        editionSize: 50
+        paperType: "Somerset Velvet"
+        translations:
+          da:
+            title: "Solnedgang ved Skagen"
+            description: "En levende kobberpladeradering, der indfanger det berømte Skagen-lys"
+
+PrintUpdate:
+  description: Request body for updating an existing print
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/print.yaml#/PrintUpdate'
+      example:
+        title: "Dusk at Skagen"
+        description: "An updated copper plate etching showcasing the twilight at Skagen"
+        technique: "Etching and Aquatint"
+        plateType: "Copper"
+        dimensions: "40cm x 50cm"
+        year: 2023
+        editionSize: 50
+        paperType: "Hahnemühle"
+        artistNotes: "Refined to capture the subtle hues of twilight"
+        translations:
+          da:
+            title: "Skumring ved Skagen"
+            description: "En opdateret kobberpladeradering, der viser tusmørket ved Skagen"

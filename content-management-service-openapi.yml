@@ -1,0 +1,367 @@
+openapi: 3.1.0
+info:
+  title: Copper Print Gallery Content Management Service API
+  version: 1.0.0
+  description: API for managing galleries and copper print artworks in the Copper Print Gallery system
+
+servers:
+  - url: '{protocol}://{environment}.api.copperprintgallery.com/api/v1'
+    variables:
+      protocol:
+        enum:
+          - http
+          - https
+        default: https
+      environment:
+        enum:
+          - dev
+          - staging
+          - prod
+        default: prod
+
+paths:
+  /galleries:
+    get:
+      summary: List copper print galleries
+      description: Retrieves a list of all copper print galleries
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+          description: Page number for pagination
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: Number of items per page
+        - in: query
+          name: language
+          schema:
+            type: string
+            enum: [en, da]
+          description: Language code for localized content
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GalleryList'
+              example:
+                galleries:
+                  - id: 1
+                    title: "Etchings of Copenhagen"
+                    description: "A collection of copper plate etchings depicting iconic scenes from Copenhagen"
+                    printCount: 15
+                    createdAt: "2023-07-01T12:00:00Z"
+                    updatedAt: "2023-07-15T14:30:00Z"
+                  - id: 2
+                    title: "Danish Landscapes"
+                    description: "Copper prints showcasing the beauty of Danish rural landscapes"
+                    printCount: 20
+                    createdAt: "2023-06-15T10:00:00Z"
+                    updatedAt: "2023-07-10T09:45:00Z"
+                totalCount: 5
+                currentPage: 1
+                totalPages: 1
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    post:
+      summary: Create a new copper print gallery
+      description: Creates a new gallery for copper print artworks
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GalleryCreate'
+            example:
+              title: "Aquatint Seascapes"
+              description: "A collection of copper plate aquatints featuring Danish coastal scenes"
+              translations:
+                da:
+                  title: "Akvatinte Havlandskaber"
+                  description: "En samling af kobberpladeakvatinter med danske kystscener"
+      responses:
+        '201':
+          description: Gallery created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gallery'
+              example:
+                id: 3
+                title: "Aquatint Seascapes"
+                description: "A collection of copper plate aquatints featuring Danish coastal scenes"
+                printCount: 0
+                createdAt: "2023-07-25T14:30:00Z"
+                updatedAt: "2023-07-25T14:30:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /galleries/{galleryId}:
+    get:
+      summary: Get copper print gallery details
+      description: Retrieves details of a specific copper print gallery
+      parameters:
+        - in: path
+          name: galleryId
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: language
+          schema:
+            type: string
+            enum: [en, da]
+          description: Language code for localized content
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GalleryDetail'
+              example:
+                id: 1
+                title: "Etchings of Copenhagen"
+                description: "A collection of copper plate etchings depicting iconic scenes from Copenhagen"
+                printCount: 15
+                createdAt: "2023-07-01T12:00:00Z"
+                updatedAt: "2023-07-15T14:30:00Z"
+                prints:
+                  - id: 101
+                    title: "The Little Mermaid"
+                    thumbnailUrl: "https://cdn.copperprintgallery.com/thumbnails/little-mermaid-etching.jpg"
+                  - id: 102
+                    title: "Nyhavn Canal"
+                    thumbnailUrl: "https://cdn.copperprintgallery.com/thumbnails/nyhavn-canal-etching.jpg"
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Update a copper print gallery
+      description: Updates an existing copper print gallery
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: galleryId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GalleryUpdate'
+            example:
+              title: "Etchings of Copenhagen - Updated"
+              description: "An updated collection of copper plate etchings depicting iconic scenes from Copenhagen"
+              translations:
+                da:
+                  title: "Raderinger af København - Opdateret"
+                  description: "En opdateret samling af kobberpladeraderinger, der skildrer ikoniske scener fra København"
+      responses:
+        '200':
+          description: Gallery updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gallery'
+              example:
+                id: 1
+                title: "Etchings of Copenhagen - Updated"
+                description: "An updated collection of copper plate etchings depicting iconic scenes from Copenhagen"
+                printCount: 15
+                createdAt: "2023-07-01T12:00:00Z"
+                updatedAt: "2023-07-26T10:15:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a copper print gallery
+      description: Deletes a copper print gallery
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: galleryId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Gallery deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    Gallery:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        printCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    GalleryCreate:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        translations:
+          type: object
+          properties:
+            da:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+
+    GalleryUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        translations:
+          type: object
+          properties:
+            da:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+
+    GalleryList:
+      type: object
+      properties:
+        galleries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Gallery'
+        totalCount:
+          type: integer
+        currentPage:
+          type: integer
+        totalPages:
+          type: integer
+
+    GalleryDetail:
+      allOf:
+        - $ref: '#/components/schemas/Gallery'
+        - type: object
+          properties:
+            prints:
+              type: array
+              items:
+                $ref: '#/components/schemas/PrintSummary'
+
+    PrintSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        thumbnailUrl:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "BAD_REQUEST"
+              message: "The request was invalid or cannot be served."
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "UNAUTHORIZED"
+              message: "Authentication is required and has failed or has not been provided."
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "FORBIDDEN"
+              message: "The request is understood, but it has been refused or access is not allowed."
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "RESOURCE_NOT_FOUND"
+              message: "The requested copper print gallery could not be found."
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

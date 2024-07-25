@@ -1,0 +1,79 @@
+# paths/galleries.yaml
+galleries:
+  get:
+    summary: List copper print galleries
+    description: Retrieves a list of all copper print galleries
+    parameters:
+      - $ref: '../parameters/pagination.yaml#/page'
+      - $ref: '../parameters/pagination.yaml#/limit'
+      - $ref: '../parameters/language.yaml#/language'
+    responses:
+      '200':
+        $ref: '../responses/galleries.yaml#/GalleryListResponse'
+      '400':
+        $ref: '../responses/errors.yaml#/BadRequest'
+  post:
+    summary: Create a new copper print gallery
+    description: Creates a new gallery for copper print artworks
+    security:
+      - BearerAuth: []
+    requestBody:
+      $ref: '../requestBodies/galleries.yaml#/GalleryCreate'
+    responses:
+      '201':
+        $ref: '../responses/galleries.yaml#/GalleryResponse'
+      '400':
+        $ref: '../responses/errors.yaml#/BadRequest'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../responses/errors.yaml#/Forbidden'
+
+galleries/{galleryId}:
+  get:
+    summary: Get copper print gallery details
+    description: Retrieves details of a specific copper print gallery
+    parameters:
+      - $ref: '../parameters/path.yaml#/galleryId'
+      - $ref: '../parameters/language.yaml#/language'
+    responses:
+      '200':
+        $ref: '../responses/galleries.yaml#/GalleryDetailResponse'
+      '404':
+        $ref: '../responses/errors.yaml#/NotFound'
+  put:
+    summary: Update a copper print gallery
+    description: Updates an existing copper print gallery
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../parameters/path.yaml#/galleryId'
+    requestBody:
+      $ref: '../requestBodies/galleries.yaml#/GalleryUpdate'
+    responses:
+      '200':
+        $ref: '../responses/galleries.yaml#/GalleryResponse'
+      '400':
+        $ref: '../responses/errors.yaml#/BadRequest'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../responses/errors.yaml#/Forbidden'
+      '404':
+        $ref: '../responses/errors.yaml#/NotFound'
+  delete:
+    summary: Delete a copper print gallery
+    description: Deletes a copper print gallery
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../parameters/path.yaml#/galleryId'
+    responses:
+      '204':
+        description: Gallery deleted successfully
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../responses/errors.yaml#/Forbidden'
+      '404':
+        $ref: '../responses/errors.yaml#/NotFound'

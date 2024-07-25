@@ -1,0 +1,30 @@
+# requestBodies/galleries.yaml
+GalleryCreate:
+  description: Request body for creating a new gallery
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/gallery.yaml#/GalleryCreate'
+      example:
+        title: "Aquatint Seascapes"
+        description: "A collection of copper plate aquatints featuring Danish coastal scenes"
+        translations:
+          da:
+            title: "Akvatinte Havlandskaber"
+            description: "En samling af kobberpladeakvatinter med danske kystscener"
+
+GalleryUpdate:
+  description: Request body for updating an existing gallery
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/gallery.yaml#/GalleryUpdate'
+      example:
+        title: "Updated Aquatint Seascapes"
+        description: "An updated collection of copper plate aquatints featuring Danish coastal scenes"
+        translations:
+          da:
+            title: "Opdaterede Akvatinte Havlandskaber"
+            description: "En opdateret samling af kobberpladeakvatinter med danske kystscener"

@@ -1,0 +1,69 @@
+# responses/prints.yaml
+PrintListResponse:
+  description: Successful response with list of prints
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/print.yaml#/PrintList'
+      example:
+        prints:
+          - id: 101
+            title: "The Little Mermaid"
+            technique: "Etching"
+            year: 2023
+            dimensions: "30cm x 40cm"
+            thumbnailUrl: "https://cdn.copperprintgallery.com/thumbnails/little-mermaid-etching.jpg"
+          - id: 102
+            title: "Nyhavn Canal"
+            technique: "Aquatint"
+            year: 2023
+            dimensions: "25cm x 35cm"
+            thumbnailUrl: "https://cdn.copperprintgallery.com/thumbnails/nyhavn-canal-aquatint.jpg"
+        totalCount: 50
+        currentPage: 1
+        totalPages: 5
+
+PrintResponse:
+  description: Successful response with print details
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/print.yaml#/Print'
+      example:
+        id: 101
+        title: "The Little Mermaid"
+        description: "An intricate etching of the iconic Little Mermaid statue in Copenhagen harbor"
+        technique: "Etching"
+        plateType: "Copper"
+        dimensions: "30cm x 40cm"
+        year: 2023
+        editionSize: 100
+        paperType: "Hahnemühle"
+        createdAt: "2023-07-01T10:00:00Z"
+        updatedAt: "2023-07-01T10:00:00Z"
+
+PrintDetailResponse:
+  description: Successful response with detailed print information
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/print.yaml#/PrintDetail'
+      example:
+        id: 101
+        title: "The Little Mermaid"
+        description: "An intricate etching of the iconic Little Mermaid statue in Copenhagen harbor"
+        technique: "Etching"
+        plateType: "Copper"
+        dimensions: "30cm x 40cm"
+        year: 2023
+        editionSize: 100
+        editionNumber: 5
+        paperType: "Hahnemühle"
+        inkType: "Oil-based"
+        printingPress: "Etching Press Model X"
+        artistNotes: "Inspired by early morning light on the statue"
+        imageUrls:
+          thumbnail: "https://cdn.copperprintgallery.com/thumbnails/little-mermaid-etching.jpg"
+          full: "https://cdn.copperprintgallery.com/full/little-mermaid-etching.jpg"
+        createdAt: "2023-07-01T10:00:00Z"
+        updatedAt: "2023-07-01T10:00:00Z"

@@ -1,0 +1,81 @@
+# paths/prints.yaml
+prints:
+  get:
+    summary: List copper prints
+    description: Retrieves a list of all copper prints
+    parameters:
+      - $ref: '../parameters/pagination.yaml#/page'
+      - $ref: '../parameters/pagination.yaml#/limit'
+      - $ref: '../parameters/language.yaml#/language'
+      - $ref: '../parameters/query.yaml#/galleryId'
+      - $ref: '../parameters/query.yaml#/technique'
+    responses:
+      '200':
+        $ref: '../responses/prints.yaml#/PrintListResponse'
+      '400':
+        $ref: '../responses/errors.yaml#/BadRequest'
+  post:
+    summary: Create a new copper print
+    description: Creates a new copper print artwork
+    security:
+      - BearerAuth: []
+    requestBody:
+      $ref: '../requestBodies/prints.yaml#/PrintCreate'
+    responses:
+      '201':
+        $ref: '../responses/prints.yaml#/PrintResponse'
+      '400':
+        $ref: '../responses/errors.yaml#/BadRequest'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../responses/errors.yaml#/Forbidden'
+
+prints/{printId}:
+  get:
+    summary: Get copper print details
+    description: Retrieves details of a specific copper print
+    parameters:
+      - $ref: '../parameters/path.yaml#/printId'
+      - $ref: '../parameters/language.yaml#/language'
+    responses:
+      '200':
+        $ref: '../responses/prints.yaml#/PrintDetailResponse'
+      '404':
+        $ref: '../responses/errors.yaml#/NotFound'
+  put:
+    summary: Update a copper print
+    description: Updates an existing copper print
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../parameters/path.yaml#/printId'
+    requestBody:
+      $ref: '../requestBodies/prints.yaml#/PrintUpdate'
+    responses:
+      '200':
+        $ref: '../responses/prints.yaml#/PrintResponse'
+      '400':
+        $ref: '../responses/errors.yaml#/BadRequest'
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../responses/errors.yaml#/Forbidden'
+      '404':
+        $ref: '../responses/errors.yaml#/NotFound'
+  delete:
+    summary: Delete a copper print
+    description: Deletes a copper print
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../parameters/path.yaml#/printId'
+    responses:
+      '204':
+        description: Print deleted successfully
+      '401':
+        $ref: '../responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../responses/errors.yaml#/Forbidden'
+      '404':
+        $ref: '../responses/errors.yaml#/NotFound'

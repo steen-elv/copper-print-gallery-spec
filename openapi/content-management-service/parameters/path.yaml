@@ -1,0 +1,16 @@
+# parameters/path.yaml
+galleryId:
+  in: path
+  name: galleryId
+  required: true
+  schema:
+    type: integer
+  description: Unique identifier of the gallery
+
+printId:
+  in: path
+  name: printId
+  required: true
+  schema:
+    type: integer
+  description: Unique identifier of the print

@@ -1,0 +1,97 @@
+C4Component
+    title C4 Component Diagram - Copper Print Gallery System (Refined)
+
+    Container_Boundary(web_app, "Web Application") {
+        Component(ui_components, "UI Components", "React", "Reusable UI elements (e.g., Gallery, ImageViewer)")
+        Component(state_management, "State Management", "Redux", "Manages application state")
+        Component(api_client, "API Client", "Axios", "Handles API requests to backend")
+        Component(asset_loader, "Asset Loader", "React", "Loads images and static assets from CDN")
+    }
+
+    Container_Boundary(artist_web_app, "Artist Web Application") {
+        Component(artist_ui, "Artist UI Components", "React", "UI for content management")
+        Component(artist_state, "Artist State Management", "Redux", "Manages artist application state")
+        Component(artist_api_client, "Artist API Client", "Axios", "Handles API requests to backend")
+    }
+
+    Container_Boundary(api_gateway, "API Gateway") {
+        Component(request_router, "Request Router", "Express.js", "Routes incoming requests")
+        Component(auth_middleware, "Auth Middleware", "Keycloak Adapter", "Handles authentication and authorization")
+        Component(rate_limiter, "Rate Limiter", "Express-rate-limit", "Limits request rates")
+        Component(error_handler, "Error Handler", "Express.js", "Centralized error handling")
+    }
+
+    Container_Boundary(content_service, "Content Management Service") {
+        Component(content_controller, "Content Controller", "Node.js", "Handles content-related operations")
+        Component(metadata_manager, "Metadata Manager", "Node.js", "Manages artwork metadata")
+        Component(gallery_organizer, "Gallery Organizer", "Node.js", "Organizes galleries and artwork order")
+    }
+
+    Container_Boundary(search_service, "Search Service") {
+        Component(search_controller, "Search Controller", "Node.js", "Handles search requests")
+        Component(query_builder, "Query Builder", "Elasticsearch DSL", "Builds complex search queries")
+        Component(results_formatter, "Results Formatter", "Node.js", "Formats search results")
+    }
+
+    Container_Boundary(image_service, "Image Processing Service") {
+        Component(image_processor, "Image Processor", "Python/Pillow", "Processes and resizes images")
+        Component(format_converter, "Format Converter", "Python/Pillow", "Converts image formats")
+        Component(metadata_extractor, "Metadata Extractor", "Python/Pillow", "Extracts image metadata")
+    }
+
+    Container_Boundary(logging_service, "Logging and Monitoring Service") {
+        Component(log_collector, "Log Collector", "Logstash", "Collects logs from all services")
+        Component(log_storage, "Log Storage", "Elasticsearch", "Stores and indexes logs")
+        Component(log_visualizer, "Log Visualizer", "Kibana", "Provides a UI for log analysis")
+    }
+
+    ContainerDb(database, "Database", "PostgreSQL", "Stores user data, artwork metadata, and gallery structure")
+    ContainerDb(file_storage, "File Storage", "S3-compatible", "Stores original and processed images")
+
+    System_Ext(cdn, "Content Delivery Network", "CloudFront")
+    System_Ext(keycloak, "Keycloak", "Authentication Server")
+
+    Rel(ui_components, state_management, "Uses")
+    Rel(ui_components, api_client, "Uses")
+    Rel(ui_components, asset_loader, "Uses")
+
+    Rel(artist_ui, artist_state, "Uses")
+    Rel(artist_ui, artist_api_client, "Uses")
+
+    Rel(request_router, auth_middleware, "Uses")
+    Rel(request_router, rate_limiter, "Uses")
+    Rel(request_router, error_handler, "Uses")
+
+    Rel(content_controller, metadata_manager, "Uses")
+    Rel(content_controller, gallery_organizer, "Uses")
+
+    Rel(search_controller, query_builder, "Uses")
+    Rel(search_controller, results_formatter, "Uses")
+
+    Rel(image_processor, format_converter, "Uses")
+    Rel(image_processor, metadata_extractor, "Uses")
+
+    Rel(log_collector, log_storage, "Stores logs in")
+    Rel(log_visualizer, log_storage, "Reads from")
+
+    Rel(api_client, request_router, "Sends requests to", "HTTPS")
+    Rel(artist_api_client, request_router, "Sends requests to", "HTTPS")
+    Rel(asset_loader, cdn, "Loads assets from", "HTTPS")
+
+    Rel(auth_middleware, keycloak, "Authenticates with", "HTTPS")
+    Rel(request_router, content_controller, "Routes to", "HTTPS")
+    Rel(request_router, search_controller, "Routes to", "HTTPS")
+    Rel(request_router, image_processor, "Routes to", "HTTPS")
+
+    Rel(content_controller, database, "Reads/Writes", "SQL")
+    Rel(search_controller, database, "Reads", "SQL")
+    Rel(image_processor, file_storage, "Reads/Writes", "HTTPS")
+
+    Rel(cdn, file_storage, "Retrieves assets from", "HTTPS")
+
+    Rel(error_handler, log_collector, "Sends logs", "TCP")
+    Rel(content_controller, log_collector, "Sends logs", "TCP")
+    Rel(search_controller, log_collector, "Sends logs", "TCP")
+    Rel(image_processor, log_collector, "Sends logs", "TCP")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")

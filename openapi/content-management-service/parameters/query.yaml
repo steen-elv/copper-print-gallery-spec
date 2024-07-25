@@ -1,0 +1,35 @@
+# parameters/query.yaml
+galleryId:
+  in: query
+  name: galleryId
+  schema:
+    type: integer
+  description: Filter prints by gallery ID
+
+technique:
+  in: query
+  name: technique
+  schema:
+    type: string
+  description: Filter prints by technique (e.g., etching, aquatint, mezzotint)
+
+year:
+  in: query
+  name: year
+  schema:
+    type: integer
+  description: Filter prints by year of creation
+
+plateType:
+  in: query
+  name: plateType
+  schema:
+    type: string
+  description: Filter prints by plate type (e.g., copper, zinc)
+
+paperType:
+  in: query
+  name: paperType
+  schema:
+    type: string
+  description: Filter prints by paper type

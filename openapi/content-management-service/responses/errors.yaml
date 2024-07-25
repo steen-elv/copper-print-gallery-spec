@@ -1,0 +1,44 @@
+# responses/errors.yaml
+BadRequest:
+  description: Bad request
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/error.yaml#/Error'
+      example:
+        error:
+          code: "BAD_REQUEST"
+          message: "The request was invalid or cannot be served."
+
+Unauthorized:
+  description: Unauthorized
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/error.yaml#/Error'
+      example:
+        error:
+          code: "UNAUTHORIZED"
+          message: "Authentication is required and has failed or has not been provided."
+
+Forbidden:
+  description: Forbidden
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/error.yaml#/Error'
+      example:
+        error:
+          code: "FORBIDDEN"
+          message: "The request is understood, but it has been refused or access is not allowed."
+
+NotFound:
+  description: Resource not found
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/error.yaml#/Error'
+      example:
+        error:
+          code: "RESOURCE_NOT_FOUND"
+          message: "The requested resource could not be found."
