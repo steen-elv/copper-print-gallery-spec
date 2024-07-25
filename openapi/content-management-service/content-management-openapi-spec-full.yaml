@@ -144,6 +144,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/printId'
         - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/imageVersion'
       responses:
         '200':
           $ref: '#/components/responses/PrintDetailResponse'
@@ -289,12 +290,28 @@ components:
           type: integer
         paperType:
           type: string
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageVersion'
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+
+    ImageVersion:
+      type: object
+      properties:
+        version:
+          type: string
+        url:
+          type: string
+        width:
+          type: integer
+        height:
+          type: integer
 
     PrintCreate:
       type: object
@@ -392,13 +409,6 @@ components:
               type: string
             artistNotes:
               type: string
-            imageUrls:
-              type: object
-              properties:
-                thumbnail:
-                  type: string
-                full:
-                  type: string
 
     PrintSummary:
       type: object
@@ -488,6 +498,13 @@ components:
       schema:
         type: string
       description: Filter prints by paper type
+    imageVersion:
+      in: query
+      name: imageVersion
+      schema:
+        type: string
+      description: Specific image version to retrieve (e.g., 'thumbnail', 'desktop', 'mobile'). If not provided, all available versions will be returned.
+
 
   responses:
     GalleryListResponse:
@@ -612,9 +629,19 @@ components:
             inkType: "Oil-based"
             printingPress: "Etching Press Model X"
             artistNotes: "Inspired by early morning light on the statue"
-            imageUrls:
-              thumbnail: "https://cdn.copperprintgallery.com/thumbnails/little-mermaid-etching.jpg"
-              full: "https://cdn.copperprintgallery.com/full/little-mermaid-etching.jpg"
+            images:
+              - version: "thumbnail"
+                url: "https://cdn.copperprintgallery.com/thumbnails/little-mermaid-etching.jpg"
+                width: 300
+                height: 200
+              - version: "desktop"
+                url: "https://cdn.copperprintgallery.com/desktop/little-mermaid-etching.jpg"
+                width: 1920
+                height: 1280
+              - version: "mobile"
+                url: "https://cdn.copperprintgallery.com/mobile/little-mermaid-etching.jpg"
+                width: 750
+                height: 500
             createdAt: "2023-07-01T10:00:00Z"
             updatedAt: "2023-07-01T10:00:00Z"
 
