@@ -1,9 +1,0 @@
-# paths.yaml
-/galleries:
-  $ref: './paths/galleries.yaml#/galleries'
-/galleries/{galleryId}:
-  $ref: './paths/galleries.yaml#/galleries/{galleryId}'
-/prints:
-  $ref: './paths/prints.yaml#/prints'
-/prints/{printId}:
-  $ref: './paths/prints.yaml#/prints/{printId}'

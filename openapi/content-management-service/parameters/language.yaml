@@ -1,8 +1,0 @@
-# parameters/language.yaml
-language:
-  in: query
-  name: language
-  schema:
-    type: string
-    enum: [en, da]
-  description: Language code for localized content
