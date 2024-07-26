@@ -98,6 +98,82 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /galleries/{galleryId}/prints:
+    get:
+      summary: Get prints in a gallery with their order
+      description: Retrieves a list of prints in the specified gallery, including their order
+      parameters:
+        - $ref: '#/components/parameters/galleryId'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/GalleryPrintsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update print order in a gallery
+      description: Updates the order of prints within the specified gallery
+      parameters:
+        - $ref: '#/components/parameters/galleryId'
+      requestBody:
+        $ref: '#/components/requestBodies/UpdatePrintOrder'
+      responses:
+        '200':
+          description: Print order updated successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /galleries/{galleryId}/prints/{printId}:
+    post:
+      summary: Add a print to a gallery
+      description: Adds a print to the specified gallery at a specific position
+      parameters:
+        - $ref: '#/components/parameters/galleryId'
+        - $ref: '#/components/parameters/printId'
+      requestBody:
+        $ref: '#/components/requestBodies/AddPrintToGallery'
+      responses:
+        '201':
+          description: Print added to gallery successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Print already exists in the gallery
+
+    delete:
+      summary: Remove a print from a gallery
+      description: Removes a print from the specified gallery
+      parameters:
+        - $ref: '#/components/parameters/galleryId'
+        - $ref: '#/components/parameters/printId'
+      responses:
+        '204':
+          description: Print removed from gallery successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /prints:
     get:
       summary: List artist's prints
@@ -224,6 +300,33 @@ components:
           type: integer
         totalPages:
           type: integer
+
+    GalleryPrint:
+      type: object
+      properties:
+        printId:
+          type: integer
+        title:
+          type: string
+        thumbnailUrl:
+          type: string
+        order:
+          type: integer
+
+    GalleryPrintsList:
+      type: object
+      properties:
+        prints:
+          type: array
+          items:
+            $ref: '#/components/schemas/GalleryPrint'
+        totalCount:
+          type: integer
+        currentPage:
+          type: integer
+        totalPages:
+          type: integer
+
 
     ArtistPrint:
       type: object
@@ -445,6 +548,26 @@ components:
                 thumbnailUrl: "https://cdn.copperprintgallery.com/thumbnails/nyhavn-canal-etching.jpg"
                 status: "draft"
 
+    GalleryPrintsResponse:
+      description: Successful response with list of prints in a gallery and their order
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GalleryPrintsList'
+          example:
+            prints:
+              - printId: 101
+                title: "The Little Mermaid"
+                thumbnailUrl: "https://cdn.copperprintgallery.com/thumbnails/little-mermaid-etching.jpg"
+                order: 1
+              - printId: 102
+                title: "Nyhavn Canal"
+                thumbnailUrl: "https://cdn.copperprintgallery.com/thumbnails/nyhavn-canal-etching.jpg"
+                order: 2
+            totalCount: 2
+            currentPage: 1
+            totalPages: 1
+
     PrintListResponse:
       description: Successful response with list of artist's prints
       content:
@@ -632,6 +755,43 @@ components:
             title: "Contemporary Copenhagen"
             description: "An updated series of prints showcasing contemporary architecture in Copenhagen"
             status: "published"
+
+    UpdatePrintOrder:
+      description: Request body for updating the order of prints in a gallery
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              printOrders:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    printId:
+                      type: integer
+                    newOrder:
+                      type: integer
+          example:
+            printOrders:
+              - printId: 101
+                newOrder: 2
+              - printId: 102
+                newOrder: 1
+
+    AddPrintToGallery:
+      description: Request body for adding a print to a gallery
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              order:
+                type: integer
+          example:
+            order: 3
 
     PrintCreate:
       description: Request body for creating a new print

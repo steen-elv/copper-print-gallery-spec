@@ -40,10 +40,12 @@ paths:
   /galleries/{galleryId}:
     get:
       summary: Get copper print gallery details
-      description: Retrieves details of a specific copper print gallery
+      description: Retrieves details of a specific copper print gallery, including ordered prints
       parameters:
         - $ref: '#/components/parameters/galleryId'
         - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/GalleryDetailResponse'
@@ -111,7 +113,19 @@ components:
             prints:
               type: array
               items:
-                $ref: '#/components/schemas/PublicPrintSummary'
+                $ref: '#/components/schemas/PublicOrderedPrintSummary'
+
+    PublicOrderedPrintSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        thumbnailUrl:
+          type: string
+        order:
+          type: integer
 
     PublicGalleryList:
       type: object
@@ -173,7 +187,7 @@ components:
         prints:
           type: array
           items:
-            $ref: '#/components/schemas/PublicPrint'
+            $ref: '#/components/schemas/PublicOrderedPrintSummary'
         totalCount:
           type: integer
         currentPage:
@@ -308,7 +322,7 @@ components:
             totalPages: 1
 
     GalleryDetailResponse:
-      description: Successful response with detailed gallery information including associated prints
+      description: Successful response with detailed gallery information including associated prints in order
       content:
         application/json:
           schema:
@@ -324,9 +338,14 @@ components:
               - id: 101
                 title: "The Little Mermaid"
                 thumbnailUrl: "https://cdn.copperprintgallery.com/thumbnails/little-mermaid-etching.jpg"
+                order: 1
               - id: 102
                 title: "Nyhavn Canal"
                 thumbnailUrl: "https://cdn.copperprintgallery.com/thumbnails/nyhavn-canal-etching.jpg"
+                order: 2
+            totalCount: 15
+            currentPage: 1
+            totalPages: 1
 
     PrintListResponse:
       description: Successful response with list of prints
