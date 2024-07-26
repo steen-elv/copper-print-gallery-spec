@@ -1,11 +1,11 @@
 openapi: 3.1.0
 info:
-  title: Copper Print Gallery Content Management Service API
+  title: Copper Print Gallery Artist API
   version: 1.0.0
-  description: API for managing galleries and copper print artworks in the Copper Print Gallery system
+  description: API for artists to manage their galleries and copper print artworks in the Copper Print Gallery system
 
 servers:
-  - url: '{protocol}://{environment}.{domain}/api/v1'
+  - url: '{protocol}://{environment}.artist.{domain}/api/v1'
     variables:
       protocol:
         enum:
@@ -25,22 +25,21 @@ servers:
 paths:
   /galleries:
     get:
-      summary: List copper print galleries
-      description: Retrieves a list of all copper print galleries
+      summary: List artist's galleries
+      description: Retrieves a list of all galleries owned by the authenticated artist
       parameters:
         - $ref: '#/components/parameters/page'
         - $ref: '#/components/parameters/limit'
-        - $ref: '#/components/parameters/language'
       responses:
         '200':
           $ref: '#/components/responses/GalleryListResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
     post:
-      summary: Create a new copper print gallery
-      description: Creates a new gallery for copper print artworks
-      security:
-        - BearerAuth: []
+      summary: Create a new gallery
+      description: Creates a new gallery for the authenticated artist
       requestBody:
         $ref: '#/components/requestBodies/GalleryCreate'
       responses:
@@ -50,26 +49,25 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
 
   /galleries/{galleryId}:
     get:
-      summary: Get copper print gallery details
-      description: Retrieves details of a specific copper print gallery
+      summary: Get gallery details
+      description: Retrieves details of a specific gallery owned by the authenticated artist
       parameters:
         - $ref: '#/components/parameters/galleryId'
-        - $ref: '#/components/parameters/language'
       responses:
         '200':
           $ref: '#/components/responses/GalleryDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
     put:
-      summary: Update a copper print gallery
-      description: Updates an existing copper print gallery
-      security:
-        - BearerAuth: []
+      summary: Update a gallery
+      description: Updates an existing gallery owned by the authenticated artist
       parameters:
         - $ref: '#/components/parameters/galleryId'
       requestBody:
@@ -86,15 +84,13 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     delete:
-      summary: Delete a copper print gallery
-      description: Deletes a copper print gallery
-      security:
-        - BearerAuth: []
+      summary: Delete a gallery
+      description: Deletes a gallery owned by the authenticated artist
       parameters:
         - $ref: '#/components/parameters/galleryId'
       responses:
         '204':
-          description: Gallery deleted successfully
+          description: Gallery successfully deleted
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -104,13 +100,12 @@ paths:
 
   /prints:
     get:
-      summary: List copper prints
-      description: Retrieves a list of all copper prints
+      summary: List artist's prints
+      description: Retrieves a list of all prints created by the authenticated artist
       parameters:
         - $ref: '#/components/parameters/page'
         - $ref: '#/components/parameters/limit'
-        - $ref: '#/components/parameters/language'
-        - $ref: '#/components/parameters/galleryIdQuery'
+        - $ref: '#/components/parameters/galleryId'
         - $ref: '#/components/parameters/technique'
         - $ref: '#/components/parameters/year'
         - $ref: '#/components/parameters/plateType'
@@ -120,11 +115,11 @@ paths:
           $ref: '#/components/responses/PrintListResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
     post:
-      summary: Create a new copper print
-      description: Creates a new copper print artwork
-      security:
-        - BearerAuth: []
+      summary: Create a new print
+      description: Creates a new print for the authenticated artist
       requestBody:
         $ref: '#/components/requestBodies/PrintCreate'
       responses:
@@ -134,27 +129,25 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
 
   /prints/{printId}:
     get:
-      summary: Get copper print details
-      description: Retrieves details of a specific copper print
+      summary: Get print details
+      description: Retrieves details of a specific print created by the authenticated artist
       parameters:
         - $ref: '#/components/parameters/printId'
-        - $ref: '#/components/parameters/language'
-        - $ref: '#/components/parameters/imageVersion'
       responses:
         '200':
           $ref: '#/components/responses/PrintDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
     put:
-      summary: Update a copper print
-      description: Updates an existing copper print
-      security:
-        - BearerAuth: []
+      summary: Update a print
+      description: Updates an existing print created by the authenticated artist
       parameters:
         - $ref: '#/components/parameters/printId'
       requestBody:
@@ -171,15 +164,13 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     delete:
-      summary: Delete a copper print
-      description: Deletes a copper print
-      security:
-        - BearerAuth: []
+      summary: Delete a print
+      description: Deletes a print created by the authenticated artist
       parameters:
         - $ref: '#/components/parameters/printId'
       responses:
         '204':
-          description: Print deleted successfully
+          description: Print successfully deleted
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -189,7 +180,7 @@ paths:
 
 components:
   schemas:
-    Gallery:
+    ArtistGallery:
       type: object
       properties:
         id:
@@ -198,6 +189,9 @@ components:
           type: string
         description:
           type: string
+        status:
+          type: string
+          enum: [ draft, published ]
         printCount:
           type: integer
         createdAt:
@@ -207,51 +201,23 @@ components:
           type: string
           format: date-time
 
-    GalleryCreate:
-      type: object
-      required:
-        - title
-      properties:
-        title:
-          type: string
-        description:
-          type: string
-        translations:
-          type: object
+    ArtistGalleryDetail:
+      allOf:
+        - $ref: '#/components/schemas/ArtistGallery'
+        - type: object
           properties:
-            da:
-              type: object
-              properties:
-                title:
-                  type: string
-                description:
-                  type: string
+            prints:
+              type: array
+              items:
+                $ref: '#/components/schemas/ArtistPrintSummary'
 
-    GalleryUpdate:
-      type: object
-      properties:
-        title:
-          type: string
-        description:
-          type: string
-        translations:
-          type: object
-          properties:
-            da:
-              type: object
-              properties:
-                title:
-                  type: string
-                description:
-                  type: string
-
-    GalleryList:
+    ArtistGalleryList:
       type: object
       properties:
         galleries:
           type: array
           items:
-            $ref: '#/components/schemas/Gallery'
+            $ref: '#/components/schemas/ArtistGallery'
         totalCount:
           type: integer
         currentPage:
@@ -259,17 +225,7 @@ components:
         totalPages:
           type: integer
 
-    GalleryDetail:
-      allOf:
-        - $ref: '#/components/schemas/Gallery'
-        - type: object
-          properties:
-            prints:
-              type: array
-              items:
-                $ref: '#/components/schemas/PrintSummary'
-
-    Print:
+    ArtistPrint:
       type: object
       properties:
         id:
@@ -288,18 +244,62 @@ components:
           type: integer
         editionSize:
           type: integer
+        editionNumber:
+          type: integer
         paperType:
           type: string
-        images:
-          type: array
-          items:
-            $ref: '#/components/schemas/ImageVersion'
+        inkType:
+          type: string
+        printingPress:
+          type: string
+        status:
+          type: string
+          enum: [ draft, published ]
+        artistNotes:
+          type: string
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+
+    ArtistPrintDetail:
+      allOf:
+        - $ref: '#/components/schemas/ArtistPrint'
+        - type: object
+          properties:
+            images:
+              type: array
+              items:
+                $ref: '#/components/schemas/ImageVersion'
+
+    ArtistPrintList:
+      type: object
+      properties:
+        prints:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArtistPrint'
+        totalCount:
+          type: integer
+        currentPage:
+          type: integer
+        totalPages:
+          type: integer
+
+    ArtistPrintSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        thumbnailUrl:
+          type: string
+        status:
+          type: string
+          enum: [ draft, published ]
 
     ImageVersion:
       type: object
@@ -312,113 +312,6 @@ components:
           type: integer
         height:
           type: integer
-
-    PrintCreate:
-      type: object
-      required:
-        - title
-        - technique
-        - plateType
-        - dimensions
-        - year
-        - editionSize
-      properties:
-        title:
-          type: string
-        description:
-          type: string
-        technique:
-          type: string
-        plateType:
-          type: string
-        dimensions:
-          type: string
-        year:
-          type: integer
-        editionSize:
-          type: integer
-        paperType:
-          type: string
-        translations:
-          type: object
-          properties:
-            da:
-              type: object
-              properties:
-                title:
-                  type: string
-                description:
-                  type: string
-
-    PrintUpdate:
-      type: object
-      properties:
-        title:
-          type: string
-        description:
-          type: string
-        technique:
-          type: string
-        plateType:
-          type: string
-        dimensions:
-          type: string
-        year:
-          type: integer
-        editionSize:
-          type: integer
-        paperType:
-          type: string
-        artistNotes:
-          type: string
-        translations:
-          type: object
-          properties:
-            da:
-              type: object
-              properties:
-                title:
-                  type: string
-                description:
-                  type: string
-
-    PrintList:
-      type: object
-      properties:
-        prints:
-          type: array
-          items:
-            $ref: '#/components/schemas/PrintSummary'
-        totalCount:
-          type: integer
-        currentPage:
-          type: integer
-        totalPages:
-          type: integer
-
-    PrintDetail:
-      allOf:
-        - $ref: '#/components/schemas/Print'
-        - type: object
-          properties:
-            editionNumber:
-              type: integer
-            inkType:
-              type: string
-            printingPress:
-              type: string
-            artistNotes:
-              type: string
-
-    PrintSummary:
-      type: object
-      properties:
-        id:
-          type: integer
-        title:
-          type: string
-        thumbnailUrl:
-          type: string
 
     Error:
       type: object
@@ -447,13 +340,6 @@ components:
         minimum: 1
         maximum: 100
       description: Number of items per page
-    language:
-      in: query
-      name: language
-      schema:
-        type: string
-        enum: [en, da]
-      description: Language code for localized content
     galleryId:
       in: path
       name: galleryId
@@ -468,12 +354,6 @@ components:
       schema:
         type: integer
       description: Unique identifier of the print
-    galleryIdQuery:
-      in: query
-      name: galleryId
-      schema:
-        type: integer
-      description: Filter prints by gallery ID
     technique:
       in: query
       name: technique
@@ -498,36 +378,31 @@ components:
       schema:
         type: string
       description: Filter prints by paper type
-    imageVersion:
-      in: query
-      name: imageVersion
-      schema:
-        type: string
-      description: Specific image version to retrieve (e.g., 'thumbnail', 'desktop', 'mobile'). If not provided, all available versions will be returned.
-
 
   responses:
     GalleryListResponse:
-      description: Successful response with list of galleries
+      description: Successful response with list of artist's galleries
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/GalleryList'
+            $ref: '#/components/schemas/ArtistGalleryList'
           example:
             galleries:
               - id: 1
                 title: "Etchings of Copenhagen"
                 description: "A collection of copper plate etchings depicting iconic scenes from Copenhagen"
+                status: "published"
                 printCount: 15
                 createdAt: "2023-07-01T12:00:00Z"
                 updatedAt: "2023-07-15T14:30:00Z"
               - id: 2
                 title: "Danish Landscapes"
                 description: "Copper prints showcasing the beauty of Danish rural landscapes"
+                status: "draft"
                 printCount: 20
                 createdAt: "2023-06-15T10:00:00Z"
                 updatedAt: "2023-07-10T09:45:00Z"
-            totalCount: 5
+            totalCount: 2
             currentPage: 1
             totalPages: 1
 
@@ -536,11 +411,12 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Gallery'
+            $ref: '#/components/schemas/ArtistGallery'
           example:
             id: 1
             title: "Etchings of Copenhagen"
             description: "A collection of copper plate etchings depicting iconic scenes from Copenhagen"
+            status: "published"
             printCount: 15
             createdAt: "2023-07-01T12:00:00Z"
             updatedAt: "2023-07-15T14:30:00Z"
@@ -550,62 +426,90 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/GalleryDetail'
+            $ref: '#/components/schemas/ArtistGalleryDetail'
           example:
             id: 1
             title: "Etchings of Copenhagen"
             description: "A collection of copper plate etchings depicting iconic scenes from Copenhagen"
-            printCount: 15
+            status: "published"
+            printCount: 2
             createdAt: "2023-07-01T12:00:00Z"
             updatedAt: "2023-07-15T14:30:00Z"
             prints:
               - id: 101
                 title: "The Little Mermaid"
                 thumbnailUrl: "https://cdn.copperprintgallery.com/thumbnails/little-mermaid-etching.jpg"
+                status: "published"
               - id: 102
                 title: "Nyhavn Canal"
                 thumbnailUrl: "https://cdn.copperprintgallery.com/thumbnails/nyhavn-canal-etching.jpg"
+                status: "draft"
 
     PrintListResponse:
-      description: Successful response with list of prints
+      description: Successful response with list of artist's prints
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/PrintList'
+            $ref: '#/components/schemas/ArtistPrintList'
           example:
             prints:
               - id: 101
                 title: "The Little Mermaid"
+                description: "An intricate etching of the iconic Little Mermaid statue"
                 technique: "Etching"
-                year: 2023
+                plateType: "Copper"
                 dimensions: "30cm x 40cm"
-                thumbnailUrl: "https://cdn.copperprintgallery.com/thumbnails/little-mermaid-etching.jpg"
+                year: 2023
+                editionSize: 50
+                editionNumber: 1
+                paperType: "Hahnemühle"
+                inkType: "Oil-based"
+                printingPress: "Etching Press Model X"
+                status: "published"
+                artistNotes: "Inspired by early morning light on the statue"
+                createdAt: "2023-07-01T10:00:00Z"
+                updatedAt: "2023-07-01T10:00:00Z"
               - id: 102
                 title: "Nyhavn Canal"
+                description: "A vibrant aquatint depicting the colorful Nyhavn canal"
                 technique: "Aquatint"
-                year: 2023
+                plateType: "Copper"
                 dimensions: "25cm x 35cm"
-                thumbnailUrl: "https://cdn.copperprintgallery.com/thumbnails/nyhavn-canal-aquatint.jpg"
-                totalCount: 50
-                currentPage: 1
-                totalPages: 5
+                year: 2023
+                editionSize: 75
+                editionNumber: 1
+                paperType: "Somerset Velvet"
+                inkType: "Water-based"
+                printingPress: "Aquatint Press Model Y"
+                status: "draft"
+                artistNotes: "Experimenting with vivid color contrasts"
+                createdAt: "2023-07-02T11:00:00Z"
+                updatedAt: "2023-07-02T11:00:00Z"
+            totalCount: 2
+            currentPage: 1
+            totalPages: 1
 
     PrintResponse:
       description: Successful response with print details
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Print'
+            $ref: '#/components/schemas/ArtistPrint'
           example:
             id: 101
             title: "The Little Mermaid"
-            description: "An intricate etching of the iconic Little Mermaid statue in Copenhagen harbor"
+            description: "An intricate etching of the iconic Little Mermaid statue"
             technique: "Etching"
             plateType: "Copper"
             dimensions: "30cm x 40cm"
             year: 2023
-            editionSize: 100
+            editionSize: 50
+            editionNumber: 1
             paperType: "Hahnemühle"
+            inkType: "Oil-based"
+            printingPress: "Etching Press Model X"
+            status: "published"
+            artistNotes: "Inspired by early morning light on the statue"
             createdAt: "2023-07-01T10:00:00Z"
             updatedAt: "2023-07-01T10:00:00Z"
 
@@ -614,36 +518,33 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/PrintDetail'
+            $ref: '#/components/schemas/ArtistPrintDetail'
           example:
             id: 101
             title: "The Little Mermaid"
-            description: "An intricate etching of the iconic Little Mermaid statue in Copenhagen harbor"
+            description: "An intricate etching of the iconic Little Mermaid statue"
             technique: "Etching"
             plateType: "Copper"
             dimensions: "30cm x 40cm"
             year: 2023
-            editionSize: 100
-            editionNumber: 5
+            editionSize: 50
+            editionNumber: 1
             paperType: "Hahnemühle"
             inkType: "Oil-based"
             printingPress: "Etching Press Model X"
+            status: "published"
             artistNotes: "Inspired by early morning light on the statue"
+            createdAt: "2023-07-01T10:00:00Z"
+            updatedAt: "2023-07-01T10:00:00Z"
             images:
               - version: "thumbnail"
                 url: "https://cdn.copperprintgallery.com/thumbnails/little-mermaid-etching.jpg"
                 width: 300
                 height: 200
-              - version: "desktop"
-                url: "https://cdn.copperprintgallery.com/desktop/little-mermaid-etching.jpg"
+              - version: "full"
+                url: "https://cdn.copperprintgallery.com/full/little-mermaid-etching.jpg"
                 width: 1920
                 height: 1280
-              - version: "mobile"
-                url: "https://cdn.copperprintgallery.com/mobile/little-mermaid-etching.jpg"
-                width: 750
-                height: 500
-            createdAt: "2023-07-01T10:00:00Z"
-            updatedAt: "2023-07-01T10:00:00Z"
 
     BadRequest:
       description: Bad request
@@ -696,14 +597,21 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/GalleryCreate'
+            type: object
+            required:
+              - title
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              status:
+                type: string
+                enum: [ draft, published ]
           example:
-            title: "Aquatint Seascapes"
-            description: "A collection of copper plate aquatints featuring Danish coastal scenes"
-            translations:
-              da:
-                title: "Akvatinte Havlandskaber"
-                description: "En samling af kobberpladeakvatinter med danske kystscener"
+            title: "Modern Copenhagen"
+            description: "A series of prints capturing the modern architecture of Copenhagen"
+            status: "draft"
 
     GalleryUpdate:
       description: Request body for updating an existing gallery
@@ -711,14 +619,19 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/GalleryUpdate'
+            type: object
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              status:
+                type: string
+                enum: [ draft, published ]
           example:
-            title: "Updated Aquatint Seascapes"
-            description: "An updated collection of copper plate aquatints featuring Danish coastal scenes"
-            translations:
-              da:
-                title: "Opdaterede Akvatinte Havlandskaber"
-                description: "En opdateret samling af kobberpladeakvatinter med danske kystscener"
+            title: "Contemporary Copenhagen"
+            description: "An updated series of prints showcasing contemporary architecture in Copenhagen"
+            status: "published"
 
     PrintCreate:
       description: Request body for creating a new print
@@ -726,20 +639,53 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/PrintCreate'
+            type: object
+            required:
+              - title
+              - technique
+              - plateType
+              - dimensions
+              - year
+              - editionSize
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              technique:
+                type: string
+              plateType:
+                type: string
+              dimensions:
+                type: string
+              year:
+                type: integer
+              editionSize:
+                type: integer
+              paperType:
+                type: string
+              inkType:
+                type: string
+              printingPress:
+                type: string
+              status:
+                type: string
+                enum: [ draft, published ]
+              artistNotes:
+                type: string
           example:
-            title: "Sunset at Skagen"
-            description: "A vibrant copper plate etching capturing the famous Skagen light"
+            title: "Øresund Bridge"
+            description: "A detailed etching of the Øresund Bridge connecting Denmark and Sweden"
             technique: "Etching"
             plateType: "Copper"
-            dimensions: "40cm x 50cm"
+            dimensions: "40cm x 60cm"
             year: 2023
             editionSize: 50
             paperType: "Somerset Velvet"
-            translations:
-              da:
-                title: "Solnedgang ved Skagen"
-                description: "En levende kobberpladeradering, der indfanger det berømte Skagen-lys"
+            inkType: "Oil-based"
+            printingPress: "Etching Press Model Z"
+            status: "draft"
+            artistNotes: "Focusing on the interplay of light and shadow on the bridge structure"
 
     PrintUpdate:
       description: Request body for updating an existing print
@@ -747,24 +693,44 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/PrintUpdate'
+            type: object
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              technique:
+                type: string
+              plateType:
+                type: string
+              dimensions:
+                type: string
+              year:
+                type: integer
+              editionSize:
+                type: integer
+              paperType:
+                type: string
+              inkType:
+                type: string
+              printingPress:
+                type: string
+              status:
+                type: string
+                enum: [ draft, published ]
+              artistNotes:
+                type: string
           example:
-            title: "Dusk at Skagen"
-            description: "An updated copper plate etching showcasing the twilight at Skagen"
-            technique: "Etching and Aquatint"
-            plateType: "Copper"
-            dimensions: "40cm x 50cm"
-            year: 2023
-            editionSize: 50
-            paperType: "Hahnemühle"
-            artistNotes: "Refined to capture the subtle hues of twilight"
-            translations:
-              da:
-                title: "Skumring ved Skagen"
-                description: "En opdateret kobberpladeradering, der viser tusmørket ved Skagen"
+            title: "Øresund Bridge at Sunset"
+            description: "An updated etching showcasing the Øresund Bridge bathed in warm sunset hues"
+            status: "published"
+            artistNotes: "Refined to emphasize the golden light of sunset on the bridge"
 
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+
+  security:
+    - BearerAuth: [ ]

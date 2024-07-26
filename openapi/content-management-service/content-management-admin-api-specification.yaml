@@ -1,0 +1,341 @@
+openapi: 3.1.0
+info:
+  title: Copper Print Gallery Admin API
+  version: 1.0.0
+  description: API for administrative operations in the Copper Print Gallery system, primarily focused on artist management
+
+servers:
+  - url: '{protocol}://{environment}.admin.{domain}/api/v1'
+    variables:
+      protocol:
+        enum:
+          - http
+          - https
+        default: https
+      environment:
+        enum:
+          - dev
+          - staging
+          - prod
+        default: prod
+      domain:
+        default: api.copperprintgallery.com
+        description: Base domain for the API
+
+paths:
+  /artists:
+    post:
+      summary: Create a new artist account
+      description: Creates a new artist account in the system
+      requestBody:
+        $ref: '#/components/requestBodies/ArtistCreate'
+      responses:
+        '201':
+          $ref: '#/components/responses/ArtistResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    get:
+      summary: List all artists
+      description: Retrieves a list of all artists in the system
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/ArtistListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /artists/{artistId}:
+    get:
+      summary: Get artist details
+      description: Retrieves details of a specific artist
+      parameters:
+        - $ref: '#/components/parameters/artistId'
+      responses:
+        '200':
+          $ref: '#/components/responses/ArtistResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Update artist details
+      description: Updates an existing artist's details
+      parameters:
+        - $ref: '#/components/parameters/artistId'
+      requestBody:
+        $ref: '#/components/requestBodies/ArtistUpdate'
+      responses:
+        '200':
+          $ref: '#/components/responses/ArtistResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete an artist account
+      description: Deletes an artist account from the system
+      parameters:
+        - $ref: '#/components/parameters/artistId'
+      responses:
+        '204':
+          description: Artist successfully deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    Artist:
+      type: object
+      properties:
+        id:
+          type: integer
+        keycloakId:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        defaultLanguage:
+          type: string
+          enum: [en, da]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        lastIndexed:
+          type: string
+          format: date-time
+
+    ArtistList:
+      type: object
+      properties:
+        artists:
+          type: array
+          items:
+            $ref: '#/components/schemas/Artist'
+        totalCount:
+          type: integer
+        currentPage:
+          type: integer
+        totalPages:
+          type: integer
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+
+  parameters:
+    page:
+      in: query
+      name: page
+      schema:
+        type: integer
+        minimum: 1
+      description: Page number for pagination
+    limit:
+      in: query
+      name: limit
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+      description: Number of items per page
+    artistId:
+      in: path
+      name: artistId
+      required: true
+      schema:
+        type: integer
+      description: Unique identifier of the artist
+
+  responses:
+    ArtistResponse:
+      description: Successful response with artist details
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Artist'
+          example:
+            id: 1
+            keycloakId: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+            username: "johndoe"
+            email: "john@example.com"
+            firstName: "John"
+            lastName: "Doe"
+            defaultLanguage: "en"
+            createdAt: "2023-07-01T10:00:00Z"
+            updatedAt: "2023-07-15T14:30:00Z"
+            lastIndexed: "2023-07-15T14:35:00Z"
+
+    ArtistListResponse:
+      description: Successful response with list of artists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ArtistList'
+          example:
+            artists:
+              - id: 1
+                keycloakId: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                username: "johndoe"
+                email: "john@example.com"
+                firstName: "John"
+                lastName: "Doe"
+                defaultLanguage: "en"
+                createdAt: "2023-07-01T10:00:00Z"
+                updatedAt: "2023-07-15T14:30:00Z"
+                lastIndexed: "2023-07-15T14:35:00Z"
+              - id: 2
+                keycloakId: "7d793789-98b7-4a6e-a43a-37b1b1a151b4"
+                username: "janedoe"
+                email: "jane@example.com"
+                firstName: "Jane"
+                lastName: "Doe"
+                defaultLanguage: "da"
+                createdAt: "2023-07-02T11:00:00Z"
+                updatedAt: "2023-07-16T09:45:00Z"
+                lastIndexed: "2023-07-16T09:50:00Z"
+            totalCount: 2
+            currentPage: 1
+            totalPages: 1
+
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "BAD_REQUEST"
+              message: "The request was invalid or cannot be served."
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "UNAUTHORIZED"
+              message: "Authentication is required and has failed or has not been provided."
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "FORBIDDEN"
+              message: "The request is understood, but it has been refused or access is not allowed."
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "RESOURCE_NOT_FOUND"
+              message: "The requested resource could not be found."
+
+  requestBodies:
+    ArtistCreate:
+      description: Request body for creating a new artist account
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - username
+              - email
+              - firstName
+              - lastName
+            properties:
+              username:
+                type: string
+              email:
+                type: string
+                format: email
+              firstName:
+                type: string
+              lastName:
+                type: string
+              defaultLanguage:
+                type: string
+                enum: [en, da]
+          example:
+            username: "newartist"
+            email: "newartist@example.com"
+            firstName: "New"
+            lastName: "Artist"
+            defaultLanguage: "en"
+
+    ArtistUpdate:
+      description: Request body for updating an existing artist
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                format: email
+              firstName:
+                type: string
+              lastName:
+                type: string
+              defaultLanguage:
+                type: string
+                enum: [en, da]
+          example:
+            email: "updated.email@example.com"
+            firstName: "Updated"
+            lastName: "Name"
+            defaultLanguage: "da"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []
