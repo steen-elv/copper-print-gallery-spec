@@ -25,6 +25,7 @@ C4Component
         Component(content_controller, "Content Controller", "Node.js", "Handles content-related operations")
         Component(metadata_manager, "Metadata Manager", "Node.js", "Manages artwork metadata")
         Component(gallery_organizer, "Gallery Organizer", "Node.js", "Organizes galleries and artwork order")
+        Component(image_coordinator, "Image Coordinator", "Node.js", "Coordinates image processing requests")
     }
 
     Container_Boundary(search_service, "Search Service") {
@@ -37,6 +38,7 @@ C4Component
         Component(image_processor, "Image Processor", "Python/Pillow", "Processes and resizes images")
         Component(format_converter, "Format Converter", "Python/Pillow", "Converts image formats")
         Component(metadata_extractor, "Metadata Extractor", "Python/Pillow", "Extracts image metadata")
+        Component(storage_manager, "Storage Manager", "Python", "Manages interactions with file storage")
     }
 
     Container_Boundary(logging_service, "Logging and Monitoring Service") {
@@ -64,12 +66,14 @@ C4Component
 
     Rel(content_controller, metadata_manager, "Uses")
     Rel(content_controller, gallery_organizer, "Uses")
+    Rel(content_controller, image_coordinator, "Uses")
 
     Rel(search_controller, query_builder, "Uses")
     Rel(search_controller, results_formatter, "Uses")
 
     Rel(image_processor, format_converter, "Uses")
     Rel(image_processor, metadata_extractor, "Uses")
+    Rel(image_processor, storage_manager, "Uses")
 
     Rel(log_collector, log_storage, "Stores logs in")
     Rel(log_visualizer, log_storage, "Reads from")
@@ -81,11 +85,11 @@ C4Component
     Rel(auth_middleware, keycloak, "Authenticates with", "HTTPS")
     Rel(request_router, content_controller, "Routes to", "HTTPS")
     Rel(request_router, search_controller, "Routes to", "HTTPS")
-    Rel(request_router, image_processor, "Routes to", "HTTPS")
 
     Rel(content_controller, database, "Reads/Writes", "SQL")
     Rel(search_controller, database, "Reads", "SQL")
-    Rel(image_processor, file_storage, "Reads/Writes", "HTTPS")
+    Rel(image_coordinator, image_processor, "Requests image processing", "HTTPS")
+    Rel(storage_manager, file_storage, "Reads/Writes", "HTTPS")
 
     Rel(cdn, file_storage, "Retrieves assets from", "HTTPS")
 

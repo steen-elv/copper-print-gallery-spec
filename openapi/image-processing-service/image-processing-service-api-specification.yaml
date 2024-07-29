@@ -1,0 +1,269 @@
+openapi: 3.1.0
+info:
+  title: Copper Print Gallery Image Processing Service API
+  version: 1.0.0
+  description: API for processing and optimizing images in the Copper Print Gallery system
+
+servers:
+  - url: '{protocol}://{environment}.image.{domain}/api/v1'
+    variables:
+      protocol:
+        enum: [http, https]
+        default: https
+      environment:
+        enum: [dev, staging, prod]
+        default: prod
+      domain:
+        default: api.copperprintgallery.com
+        description: Base domain for the API
+
+paths:
+  /process:
+    post:
+      summary: Process a new image
+      description: Upload and process a new image, generating various sizes and formats
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                options:
+                  $ref: '#/components/schemas/ProcessingOptions'
+      responses:
+        '200':
+          $ref: '#/components/responses/ProcessingResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+
+  /resize/{imageId}:
+    post:
+      summary: Resize an existing image
+      description: Generate a new size variant of an existing image
+      parameters:
+        - name: imageId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResizeOptions'
+      responses:
+        '200':
+          $ref: '#/components/responses/ResizeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /optimize/{imageId}:
+    post:
+      summary: Optimize an image
+      description: Optimize an existing image for web delivery
+      parameters:
+        - name: imageId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OptimizationOptions'
+      responses:
+        '200':
+          $ref: '#/components/responses/OptimizationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /metadata/{imageId}:
+    get:
+      summary: Get image metadata
+      description: Retrieve metadata for a specific image
+      parameters:
+        - name: imageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/MetadataResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    ProcessingOptions:
+      type: object
+      properties:
+        sizes:
+          type: array
+          items:
+            $ref: '#/components/schemas/SizeOption'
+        format:
+          type: string
+          enum: [jpg, webp]
+        quality:
+          type: integer
+          minimum: 1
+          maximum: 100
+        preserveMetadata:
+          type: boolean
+
+    SizeOption:
+      type: object
+      properties:
+        name:
+          type: string
+          enum: [thumbnail, small, medium, large, full]
+        width:
+          type: integer
+        height:
+          type: integer
+        fit:
+          type: string
+          enum: [cover, contain, fill, inside, outside]
+
+    ResizeOptions:
+      type: object
+      properties:
+        width:
+          type: integer
+        height:
+          type: integer
+        fit:
+          type: string
+          enum: [cover, contain, fill, inside, outside]
+
+    OptimizationOptions:
+      type: object
+      properties:
+        quality:
+          type: integer
+          minimum: 1
+          maximum: 100
+        format:
+          type: string
+          enum: [jpg, webp]
+
+    ProcessedImage:
+      type: object
+      properties:
+        id:
+          type: string
+        originalName:
+          type: string
+        mimeType:
+          type: string
+        size:
+          type: integer
+        width:
+          type: integer
+        height:
+          type: integer
+        url:
+          type: string
+
+    ImageMetadata:
+      type: object
+      properties:
+        width:
+          type: integer
+        height:
+          type: integer
+        format:
+          type: string
+        colorSpace:
+          type: string
+        hasAlpha:
+          type: boolean
+        exif:
+          type: object
+          additionalProperties: true
+
+  responses:
+    ProcessingResponse:
+      description: Successful image processing response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              original:
+                $ref: '#/components/schemas/ProcessedImage'
+              variants:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProcessedImage'
+
+    ResizeResponse:
+      description: Successful image resize response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProcessedImage'
+
+    OptimizationResponse:
+      description: Successful image optimization response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProcessedImage'
+
+    MetadataResponse:
+      description: Successful metadata retrieval response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ImageMetadata'
+
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+
+    UnsupportedMediaType:
+      description: Unsupported media type
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []
