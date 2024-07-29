@@ -1,0 +1,348 @@
+openapi: 3.1.0
+info:
+  title: Copper Print Gallery Search Service API
+  version: 1.0.0
+  description: API for searching galleries and prints in the Copper Print Gallery system using Elasticsearch
+
+servers:
+  - url: '{protocol}://{environment}.search.{domain}/api/v1'
+    variables:
+      protocol:
+        enum: [http, https]
+        default: https
+      environment:
+        enum: [dev, staging, prod]
+        default: prod
+      domain:
+        default: api.copperprintgallery.com
+        description: Base domain for the API
+
+paths:
+  /search:
+    get:
+      summary: Simple search across all content
+      description: Performs a simple search across galleries and prints
+      parameters:
+        - name: q
+          in: query
+          description: Search query string
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/SearchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    
+    post:
+      summary: Advanced search across all content
+      description: Performs an advanced search across galleries and prints using Elasticsearch DSL
+      requestBody:
+        $ref: '#/components/requestBodies/AdvancedSearchBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/SearchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /search/galleries:
+    get:
+      summary: Simple gallery search
+      description: Performs a simple search on galleries
+      parameters:
+        - name: q
+          in: query
+          description: Search query string
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/GallerySearchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    
+    post:
+      summary: Advanced gallery search
+      description: Performs an advanced search on galleries using Elasticsearch DSL
+      requestBody:
+        $ref: '#/components/requestBodies/AdvancedSearchBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/GallerySearchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /search/prints:
+    get:
+      summary: Simple print search
+      description: Performs a simple search on prints
+      parameters:
+        - name: q
+          in: query
+          description: Search query string
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/PrintSearchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    
+    post:
+      summary: Advanced print search
+      description: Performs an advanced search on prints using Elasticsearch DSL
+      requestBody:
+        $ref: '#/components/requestBodies/AdvancedSearchBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/PrintSearchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+components:
+  parameters:
+    page:
+      name: page
+      in: query
+      description: Page number for pagination
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+    limit:
+      name: limit
+      in: query
+      description: Number of results per page
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
+
+  schemas:
+    SearchResult:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [gallery, print]
+        title:
+          type: string
+        description:
+          type: string
+        thumbnailUrl:
+          type: string
+        highlights:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+    FacetBucket:
+      type: object
+      properties:
+        key:
+          type: string
+        docCount:
+          type: integer
+
+    Facet:
+      type: object
+      properties:
+        name:
+          type: string
+        buckets:
+          type: array
+          items:
+            $ref: '#/components/schemas/FacetBucket'
+
+    SearchResponse:
+      type: object
+      properties:
+        hits:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResult'
+        totalHits:
+          type: integer
+        facets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Facet'
+        page:
+          type: integer
+        totalPages:
+          type: integer
+
+    ElasticsearchQuery:
+      type: object
+      description: Simplified Elasticsearch DSL query
+      properties:
+        query:
+          type: object
+          properties:
+            match:
+              type: object
+              additionalProperties:
+                type: string
+              description: Full-text match query
+            multi_match:
+              type: object
+              properties:
+                query:
+                  type: string
+                fields:
+                  type: array
+                  items:
+                    type: string
+              description: Multi-field full-text query
+            term:
+              type: object
+              additionalProperties:
+                type: string
+              description: Exact match query
+            range:
+              type: object
+              additionalProperties:
+                type: object
+                properties:
+                  gte:
+                    type: string
+                  lte:
+                    type: string
+              description: Range query for numeric or date fields
+        filter:
+          type: array
+          items:
+            type: object
+            properties:
+              term:
+                type: object
+                additionalProperties:
+                  type: string
+              range:
+                type: object
+                additionalProperties:
+                  type: object
+                  properties:
+                    gte:
+                      type: string
+                    lte:
+                      type: string
+          description: List of filters to apply to the search
+        sort:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: string
+          description: Sorting criteria
+
+    FacetRequest:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Field to facet on
+        size:
+          type: integer
+          description: Number of facet buckets to return
+        order:
+          type: object
+          properties:
+            _count:
+              type: string
+              enum: [asc, desc]
+          description: Order of facet buckets
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+
+  requestBodies:
+    AdvancedSearchBody:
+      description: Advanced search request body
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              query:
+                $ref: '#/components/schemas/ElasticsearchQuery'
+              facets:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FacetRequest'
+              page:
+                type: integer
+              limit:
+                type: integer
+          example:
+            query:
+              query:
+                multi_match:
+                  query: "Copenhagen etching"
+                  fields: ["title", "description", "technique"]
+              filter:
+                - term:
+                    plateType: "copper"
+                - range:
+                    year:
+                      gte: "2020"
+              sort:
+                - year: "desc"
+            facets:
+              - field: "technique"
+                size: 10
+              - field: "year"
+                size: 5
+                order:
+                  _count: "desc"
+            page: 1
+            limit: 20
+
+  responses:
+    SearchResponse:
+      description: Successful search response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SearchResponse'
+    
+    GallerySearchResponse:
+      description: Successful gallery search response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SearchResponse'
+    
+    PrintSearchResponse:
+      description: Successful print search response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SearchResponse'
+    
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
