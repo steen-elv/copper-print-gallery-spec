@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: Copper Print Gallery Image Processing Service API
-  version: 1.0.0
-  description: API for processing and optimizing images in the Copper Print Gallery system
+  version: 2.0.0
+  description: API for processing, optimizing, and managing images in the Copper Print Gallery system
 
 servers:
   - url: '{protocol}://{environment}.image.{domain}/api/v1'
@@ -18,10 +18,10 @@ servers:
         description: Base domain for the API
 
 paths:
-  /process:
+  /images:
     post:
-      summary: Process a new image
-      description: Upload and process a new image, generating various sizes and formats
+      summary: Upload and process a new image
+      description: Upload a new image, initiate processing, and store the result
       requestBody:
         content:
           multipart/form-data:
@@ -34,42 +34,66 @@ paths:
                 options:
                   $ref: '#/components/schemas/ProcessingOptions'
       responses:
-        '200':
-          $ref: '#/components/responses/ProcessingResponse'
+        '202':
+          $ref: '#/components/responses/AsyncProcessingResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '415':
           $ref: '#/components/responses/UnsupportedMediaType'
 
-  /resize/{imageId}:
-    post:
-      summary: Resize an existing image
-      description: Generate a new size variant of an existing image
+  /images/{parentImageId}:
+    get:
+      summary: Retrieve image information
+      description: Get information about a processed image and all its versions
       parameters:
-        - name: imageId
+        - name: parentImageId
           in: path
           required: true
           schema:
             type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ResizeOptions'
       responses:
         '200':
-          $ref: '#/components/responses/ResizeResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/ImageInfoResponse'
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /optimize/{imageId}:
+    delete:
+      summary: Delete an image and all its versions
+      description: Remove an image and all its processed versions from storage
+      parameters:
+        - name: parentImageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Image and all versions successfully deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /images/{parentImageId}/status:
+    get:
+      summary: Check processing status
+      description: Get the current status of an image processing operation
+      parameters:
+        - name: parentImageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/ProcessingStatusResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /images/{parentImageId}/optimize:
     post:
       summary: Optimize an image
-      description: Optimize an existing image for web delivery
+      description: Initiate an optimization process for an existing image
       parameters:
-        - name: imageId
+        - name: parentImageId
           in: path
           required: true
           schema:
@@ -80,26 +104,26 @@ paths:
             schema:
               $ref: '#/components/schemas/OptimizationOptions'
       responses:
-        '200':
-          $ref: '#/components/responses/OptimizationResponse'
+        '202':
+          $ref: '#/components/responses/AsyncProcessingResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /metadata/{imageId}:
+  /images/{parentImageId}/exif:
     get:
-      summary: Get image metadata
-      description: Retrieve metadata for a specific image
+      summary: Retrieve EXIF data
+      description: Get EXIF metadata for the original image
       parameters:
-        - name: imageId
+        - name: parentImageId
           in: path
           required: true
           schema:
             type: string
       responses:
         '200':
-          $ref: '#/components/responses/MetadataResponse'
+          $ref: '#/components/responses/ExifDataResponse'
         '404':
           $ref: '#/components/responses/NotFound'
 
@@ -108,7 +132,7 @@ components:
     ProcessingOptions:
       type: object
       properties:
-        sizes:
+        customSizes:
           type: array
           items:
             $ref: '#/components/schemas/SizeOption'
@@ -127,18 +151,6 @@ components:
       properties:
         name:
           type: string
-          enum: [thumbnail, small, medium, large, full]
-        width:
-          type: integer
-        height:
-          type: integer
-        fit:
-          type: string
-          enum: [cover, contain, fill, inside, outside]
-
-    ResizeOptions:
-      type: object
-      properties:
         width:
           type: integer
         height:
@@ -161,7 +173,11 @@ components:
     ProcessedImage:
       type: object
       properties:
-        id:
+        parentId:
+          type: string
+        versionId:
+          type: string
+        versionName:
           type: string
         originalName:
           type: string
@@ -175,59 +191,76 @@ components:
           type: integer
         url:
           type: string
+        storageDetails:
+          type: object
+          properties:
+            bucket:
+              type: string
+            path:
+              type: string
 
-    ImageMetadata:
+    ProcessingStatus:
       type: object
       properties:
-        width:
-          type: integer
-        height:
-          type: integer
-        format:
+        status:
           type: string
-        colorSpace:
+          enum: [pending, processing, completed, failed]
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        error:
           type: string
-        hasAlpha:
-          type: boolean
-        exif:
-          type: object
-          additionalProperties: true
+
+    ExifData:
+      type: object
+      additionalProperties: true
 
   responses:
-    ProcessingResponse:
-      description: Successful image processing response
+    AsyncProcessingResponse:
+      description: Asynchronous processing initiated
       content:
         application/json:
           schema:
             type: object
             properties:
+              parentImageId:
+                type: string
+              status:
+                type: string
+                enum: [pending, processing]
+              statusUrl:
+                type: string
+
+    ImageInfoResponse:
+      description: Image information including all versions
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              parentImageId:
+                type: string
               original:
                 $ref: '#/components/schemas/ProcessedImage'
-              variants:
+              versions:
                 type: array
                 items:
                   $ref: '#/components/schemas/ProcessedImage'
 
-    ResizeResponse:
-      description: Successful image resize response
+    ProcessingStatusResponse:
+      description: Current status of image processing
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ProcessedImage'
+            $ref: '#/components/schemas/ProcessingStatus'
 
-    OptimizationResponse:
-      description: Successful image optimization response
+    ExifDataResponse:
+      description: EXIF metadata for the original image
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ProcessedImage'
-
-    MetadataResponse:
-      description: Successful metadata retrieval response
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ImageMetadata'
+            $ref: '#/components/schemas/ExifData'
 
     BadRequest:
       description: Bad request
