@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: Copper Print Gallery Image Processing Service API
-  version: 2.0.0
-  description: API for processing, optimizing, and managing images in the Copper Print Gallery system
+  version: 3.4.0
+  description: API for processing images and specifying the callback interface for the Content Management Service
 
 servers:
   - url: '{protocol}://{environment}.image.{domain}/api/v1'
@@ -18,203 +18,147 @@ servers:
         description: Base domain for the API
 
 paths:
-  /images:
+  /process:
     post:
-      summary: Upload and process a new image
-      description: Upload a new image, initiate processing, and store the result
+      summary: Initiate image processing
+      description: Start asynchronous processing of an image from temporary storage to create all standard image versions
       requestBody:
         content:
-          multipart/form-data:
+          application/json:
             schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-                options:
-                  $ref: '#/components/schemas/ProcessingOptions'
+              $ref: '#/components/schemas/ProcessingRequest'
+            example:
+              baseImageId: "123e4567-e89b-12d3-a456-426614174000"
+              originalImageReference: "temp-storage://uploads/original/123e4567-e89b-12d3-a456-426614174000.jpg"
       responses:
         '202':
           $ref: '#/components/responses/AsyncProcessingResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
 
-  /images/{parentImageId}:
-    get:
-      summary: Retrieve image information
-      description: Get information about a processed image and all its versions
-      parameters:
-        - name: parentImageId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          $ref: '#/components/responses/ImageInfoResponse'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
+  /images/{baseImageId}:
     delete:
-      summary: Delete an image and all its versions
-      description: Remove an image and all its processed versions from storage
+      summary: Delete all versions of an image
+      description: Remove all versions of an image from storage
       parameters:
-        - name: parentImageId
+        - name: baseImageId
           in: path
           required: true
           schema:
             type: string
       responses:
         '204':
-          description: Image and all versions successfully deleted
+          description: All image versions successfully deleted
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /images/{parentImageId}/status:
-    get:
-      summary: Check processing status
-      description: Get the current status of an image processing operation
-      parameters:
-        - name: parentImageId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          $ref: '#/components/responses/ProcessingStatusResponse'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  /images/{parentImageId}/optimize:
+  /callback:
     post:
-      summary: Optimize an image
-      description: Initiate an optimization process for an existing image
-      parameters:
-        - name: parentImageId
-          in: path
-          required: true
-          schema:
-            type: string
+      summary: Processing result callback
+      description: Endpoint to be implemented by the Content Management Service to receive processing results
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OptimizationOptions'
-      responses:
-        '202':
-          $ref: '#/components/responses/AsyncProcessingResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  /images/{parentImageId}/exif:
-    get:
-      summary: Retrieve EXIF data
-      description: Get EXIF metadata for the original image
-      parameters:
-        - name: parentImageId
-          in: path
-          required: true
-          schema:
-            type: string
+              $ref: '#/components/schemas/ProcessingResult'
+            example:
+              baseImageId: "123e4567-e89b-12d3-a456-426614174000"
+              status: "completed"
+              versions:
+                - versionIdentifier: "original"
+                  storageBucket: "copper-print-gallery-images"
+                  storagePath: "originals/123e4567-e89b-12d3-a456-426614174000.jpg"
+                  publicUrl: "https://cdn.copperprintgallery.com/originals/123e4567-e89b-12d3-a456-426614174000.jpg"
+                  width: 3000
+                  height: 2000
+                  fileSize: 5242880
+                  format: "jpeg"
+                - versionIdentifier: "thumbnail"
+                  storageBucket: "copper-print-gallery-images"
+                  storagePath: "thumbnails/123e4567-e89b-12d3-a456-426614174000_thumbnail.jpg"
+                  publicUrl: "https://cdn.copperprintgallery.com/thumbnails/123e4567-e89b-12d3-a456-426614174000_thumbnail.jpg"
+                  width: 300
+                  height: 200
+                  fileSize: 51200
+                  format: "jpeg"
+                - versionIdentifier: "medium"
+                  storageBucket: "copper-print-gallery-images"
+                  storagePath: "medium/123e4567-e89b-12d3-a456-426614174000_medium.jpg"
+                  publicUrl: "https://cdn.copperprintgallery.com/medium/123e4567-e89b-12d3-a456-426614174000_medium.jpg"
+                  width: 800
+                  height: 533
+                  fileSize: 204800
+                  format: "jpeg"
+              exifData:
+                Make: "Canon"
+                Model: "EOS 5D Mark IV"
+                DateTimeOriginal: "2023:06:15 14:30:22"
+                ApertureValue: "8.0"
+                ExposureTime: "1/250"
+                FocalLength: "50.0 mm"
+                ISO: "100"
       responses:
         '200':
-          $ref: '#/components/responses/ExifDataResponse'
-        '404':
-          $ref: '#/components/responses/NotFound'
+          description: Callback received successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
 
 components:
   schemas:
-    ProcessingOptions:
+    ProcessingRequest:
       type: object
+      required:
+        - baseImageId
+        - originalImageReference
       properties:
-        customSizes:
-          type: array
-          items:
-            $ref: '#/components/schemas/SizeOption'
-        format:
+        baseImageId:
           type: string
-          enum: [jpg, webp]
-        quality:
-          type: integer
-          minimum: 1
-          maximum: 100
-        preserveMetadata:
-          type: boolean
+        originalImageReference:
+          type: string
+          description: Reference to the original image in temporary storage
 
-    SizeOption:
+    ProcessedImageVersion:
       type: object
       properties:
-        name:
+        versionIdentifier:
+          type: string
+        storageBucket:
+          type: string
+        storagePath:
+          type: string
+        publicUrl:
           type: string
         width:
           type: integer
         height:
           type: integer
-        fit:
-          type: string
-          enum: [cover, contain, fill, inside, outside]
-
-    OptimizationOptions:
-      type: object
-      properties:
-        quality:
+        fileSize:
           type: integer
-          minimum: 1
-          maximum: 100
         format:
           type: string
-          enum: [jpg, webp]
 
-    ProcessedImage:
+    ProcessingResult:
       type: object
+      required:
+        - baseImageId
+        - status
+        - versions
       properties:
-        parentId:
+        baseImageId:
           type: string
-        versionId:
-          type: string
-        versionName:
-          type: string
-        originalName:
-          type: string
-        mimeType:
-          type: string
-        size:
-          type: integer
-        width:
-          type: integer
-        height:
-          type: integer
-        url:
-          type: string
-        storageDetails:
-          type: object
-          properties:
-            bucket:
-              type: string
-            path:
-              type: string
-
-    ProcessingStatus:
-      type: object
-      properties:
         status:
           type: string
-          enum: [pending, processing, completed, failed]
-        progress:
-          type: integer
-          minimum: 0
-          maximum: 100
+          enum: [completed, failed]
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessedImageVersion'
+        exifData:
+          type: object
+          additionalProperties: true
         error:
           type: string
-
-    ExifData:
-      type: object
-      additionalProperties: true
+          description: Error message if processing failed
 
   responses:
     AsyncProcessingResponse:
@@ -224,43 +168,13 @@ components:
           schema:
             type: object
             properties:
-              parentImageId:
+              baseImageId:
                 type: string
-              status:
+              message:
                 type: string
-                enum: [pending, processing]
-              statusUrl:
-                type: string
-
-    ImageInfoResponse:
-      description: Image information including all versions
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              parentImageId:
-                type: string
-              original:
-                $ref: '#/components/schemas/ProcessedImage'
-              versions:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ProcessedImage'
-
-    ProcessingStatusResponse:
-      description: Current status of image processing
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ProcessingStatus'
-
-    ExifDataResponse:
-      description: EXIF metadata for the original image
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ExifData'
+          example:
+            baseImageId: "123e4567-e89b-12d3-a456-426614174000"
+            message: "Image processing initiated successfully"
 
     BadRequest:
       description: Bad request
@@ -271,16 +185,8 @@ components:
             properties:
               error:
                 type: string
-
-    UnsupportedMediaType:
-      description: Unsupported media type
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
+          example:
+            error: "Invalid processing request. Missing required field: originalImageReference"
 
     NotFound:
       description: Resource not found
@@ -291,6 +197,8 @@ components:
             properties:
               error:
                 type: string
+          example:
+            error: "Image with baseImageId '123e4567-e89b-12d3-a456-426614174000' not found"
 
   securitySchemes:
     BearerAuth:
