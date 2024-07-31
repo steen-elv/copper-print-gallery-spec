@@ -1,5 +1,5 @@
 C4Component
-    title C4 Component Diagram - Copper Print Gallery System (Refined)
+    title C4 Component Diagram - Copper Print Gallery System
 
     Container_Boundary(web_app, "Web Application") {
         Component(ui_components, "UI Components", "React", "Reusable UI elements (e.g., Gallery, ImageViewer)")
@@ -17,7 +17,7 @@ C4Component
 
     Container_Boundary(api_gateway, "API Gateway") {
         Component(request_router, "Request Router", "Express.js", "Routes incoming requests")
-        Component(auth_middleware, "Auth Middleware", "Keycloak Adapter", "Handles authentication and authorization")
+        Component(auth_middleware, "Auth Middleware", "Auth0 SDK", "Handles authentication and authorization")
         Component(rate_limiter, "Rate Limiter", "Express-rate-limit", "Limits request rates")
         Component(error_handler, "Error Handler", "Express.js", "Centralized error handling")
     }
@@ -62,7 +62,7 @@ C4Component
     ContainerDb(temp_storage, "Temporary Storage", "S3-compatible", "Temporarily stores original images during processing")
 
     System_Ext(cdn, "Content Delivery Network", "CloudFront")
-    System_Ext(keycloak, "Keycloak", "Authentication Server")
+    System_Ext(auth0, "Auth0", "Authentication Server")
 
     Rel(ui_components, state_management, "Uses")
     Rel(ui_components, api_client, "Uses")
@@ -100,7 +100,7 @@ C4Component
     Rel(artist_api_client, request_router, "Sends requests to", "HTTPS")
     Rel(asset_loader, cdn, "Loads assets from", "HTTPS")
 
-    Rel(auth_middleware, keycloak, "Authenticates with", "HTTPS")
+    Rel(auth_middleware, auth0, "Authenticates with", "HTTPS")
     Rel(request_router, content_controller, "Routes to", "HTTPS")
     Rel(request_router, search_controller, "Routes to", "HTTPS")
 
