@@ -14,12 +14,12 @@ C4Container
         Container(logging_service, "Logging and Monitoring Service", "ELK Stack", "Collects, stores, and visualizes logs")
         Container(config_service, "Configuration Service", "Node.js", "Manages shared configuration, including image version definitions")
         ContainerDb(database, "Database", "PostgreSQL", "Stores user data, artwork metadata, and gallery structure")
-        ContainerDb(file_storage, "File Storage", "S3-compatible", "Stores original and processed images")
-        ContainerDb(temp_storage, "Temporary Storage", "S3-compatible", "Temporarily stores original images during processing")
+        ContainerDb(file_storage, "File Storage", "Amazon S3", "Stores processed images")
+        ContainerDb(temp_storage, "Temporary Storage", "Amazon S3", "Temporarily stores original images during processing")
     }
 
     System_Ext(cdn, "Content Delivery Network", "CloudFront", "Serves optimized images and static assets")
-    System_Ext(keycloak, "Keycloak", "Authentication Server", "Handles user authentication and authorization")
+    System_Ext(auth0, "Auth0", "Authentication Service", "Handles artist authentication and authorization")
 
     Rel(user, web_app, "Views artwork")
     Rel(artist, artist_web_app, "Manages content")
@@ -28,19 +28,18 @@ C4Container
     Rel(artist_web_app, api_gateway, "Makes API calls", "JSON/HTTPS")
     Rel(web_app, cdn, "Loads assets from", "HTTPS")
 
-    Rel(api_gateway, keycloak, "Authenticates users", "HTTPS")
+    Rel(api_gateway, auth0, "Authenticates artist", "HTTPS")
     Rel(api_gateway, content_service, "Routes requests", "JSON/HTTPS")
     Rel(api_gateway, search_service, "Routes requests", "JSON/HTTPS")
 
     Rel(content_service, image_service, "Requests image processing", "JSON/HTTPS")
     Rel(content_service, database, "Reads from and writes to", "SQL/TCP")
     Rel(content_service, temp_storage, "Stores original images", "HTTPS")
-    Rel(content_service, file_storage, "Moves processed images", "HTTPS")
     Rel(search_service, database, "Reads from", "SQL/TCP")
     Rel(image_service, temp_storage, "Reads original images", "HTTPS")
-    Rel(image_service, file_storage, "Writes processed images", "HTTPS")
+    Rel(image_service, file_storage, "Stores and retrieves processed images", "HTTPS")
 
-    Rel(cdn, file_storage, "Reads assets from", "HTTPS")
+    Rel(cdn, file_storage, "Retrieves assets from", "HTTPS")
 
     Rel(api_gateway, logging_service, "Sends logs", "TCP")
     Rel(content_service, logging_service, "Sends logs", "TCP")
