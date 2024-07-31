@@ -59,11 +59,11 @@ We have decided to use Heroku as the deployment platform for the Copper Print Ga
 4. Heroku CLI and Heroku.yml: While simpler, using Terraform provides more powerful infrastructure-as-code capabilities and aligns with our team's expertise.
 
 ## Related Decisions
-- Use of Auth0 for artist authentication
-- Choice of PostgreSQL for database
-- Decision to use Amazon S3 for file storage
+- Use Auth0 for Artist Authentication in Copper Print Gallery
+- Use PostgreSQL as Database for Copper Print Gallery
+- Use Amazon S3 for File Storage in Copper Print Gallery
 - System requirements specification
-- Use of Terraform for infrastructure management
+- Use Terraform for Infrastructure Management in Copper Print Gallery
 
 ## References
 - Heroku Documentation: [https://devcenter.heroku.com/](https://devcenter.heroku.com/)

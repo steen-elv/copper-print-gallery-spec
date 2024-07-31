@@ -48,7 +48,7 @@ We have decided to use Auth0 for handling artist authentication in the Copper Pr
 2. Okta: Similar to Auth0, but Auth0 was preferred due to better documentation and developer experience.
 
 ## Related Decisions
-- Choice of Heroku as deployment platform
+- Heroku Deployment Strategy for Copper Print Gallery
 - System requirements specification
 
 ## References

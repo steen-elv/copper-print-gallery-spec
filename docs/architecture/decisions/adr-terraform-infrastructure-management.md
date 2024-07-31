@@ -7,18 +7,17 @@
 Proposed
 
 ## Context
-The Copper Print Gallery system requires a reliable and reproducible method for managing its infrastructure. While we've chosen Heroku as our primary deployment platform, we need a way to version control our infrastructure, manage multiple environments consistently, and potentially integrate with other cloud services (such as Amazon S3 for file storage). Additionally, we have an infrastructure expert on our team with significant expertise in Terraform.
+The Copper Print Gallery system requires a reliable and reproducible method for managing its infrastructure. While we've chosen Heroku as our primary deployment platform, we need a way to version control our infrastructure, manage multiple environments consistently, and potentially integrate with other cloud services (such as Amazon S3 for file storage).
 
 ## Decision
 We have decided to use Terraform for managing the infrastructure of the Copper Print Gallery system, including our Heroku resources and any additional cloud services we integrate with.
 
 ## Rationale
 1. Infrastructure as Code (IaC): Terraform allows us to define our infrastructure in a declarative manner, providing version control and reproducibility.
-2. Team Expertise: We can leverage our infrastructure expert's Terraform skills, ensuring efficient and best-practice use of the tool.
-3. Multi-Cloud Support: While primarily using Heroku, Terraform allows us to easily integrate and manage resources from other providers (e.g., AWS for S3) in a unified manner.
-4. Consistency Across Environments: Terraform makes it easier to maintain consistency between development, staging, and production environments.
-5. State Management: Terraform's state management helps in tracking the current state of our infrastructure and managing changes over time.
-6. Modularity: Terraform's module system allows us to create reusable components of our infrastructure, promoting best practices and reducing redundancy.
+2. Multi-Cloud Support: While primarily using Heroku, Terraform allows us to easily integrate and manage resources from other providers (e.g., AWS for S3) in a unified manner.
+3. Consistency Across Environments: Terraform makes it easier to maintain consistency between development, staging, and production environments.
+4. State Management: Terraform's state management helps in tracking the current state of our infrastructure and managing changes over time.
+5. Modularity: Terraform's module system allows us to create reusable components of our infrastructure, promoting best practices and reducing redundancy.
 
 ## Consequences
 
@@ -27,7 +26,6 @@ We have decided to use Terraform for managing the infrastructure of the Copper P
 - Improved consistency and reproducibility across different environments.
 - Easier management of complex infrastructure as the system grows.
 - Ability to automate infrastructure changes as part of our CI/CD pipeline.
-- Leverage our team's existing expertise in Terraform.
 
 ### Negative
 - Initial setup time to define our infrastructure in Terraform.
@@ -57,9 +55,9 @@ We have decided to use Terraform for managing the infrastructure of the Copper P
 3. Pulumi: Similar capabilities to Terraform but would require additional learning given our existing Terraform expertise.
 
 ## Related Decisions
-- Heroku as our deployment platform
-- Use of Amazon S3 for file storage
-- Overall system architecture and service decomposition
+- Heroku Deployment Strategy for Copper Print Gallery
+- Use Amazon S3 for File Storage in Copper Print Gallery
+- Overall system architecture and service decomposition (C4 container and component diagrams)
 
 ## References
 - Terraform Documentation: [https://www.terraform.io/docs](https://www.terraform.io/docs)

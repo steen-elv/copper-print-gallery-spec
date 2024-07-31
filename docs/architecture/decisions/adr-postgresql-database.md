@@ -49,7 +49,7 @@ We have decided to use PostgreSQL as the primary database for the Copper Print G
 3. SQLite: While simple and lightweight, it lacks the robustness and concurrent access capabilities we might need as we grow.
 
 ## Related Decisions
-- Heroku as our deployment platform
+- Heroku Deployment Strategy for Copper Print Gallery
 - System requirements specification
 
 ## References

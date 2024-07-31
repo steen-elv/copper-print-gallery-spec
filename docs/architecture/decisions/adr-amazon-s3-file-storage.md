@@ -50,7 +50,7 @@ We have decided to use Amazon S3 (Simple Storage Service) for file storage in th
 3. DigitalOcean Spaces: A simpler object storage solution, but S3 offers more advanced features and better integration options.
 
 ## Related Decisions
-- Heroku as our deployment platform
+- Heroku Deployment Strategy for Copper Print Gallery
 - System requirements specification
 
 ## References
