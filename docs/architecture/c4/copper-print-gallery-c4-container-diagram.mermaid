@@ -11,7 +11,6 @@ C4Container
         Container(content_service, "Content Management Service", "Node.js", "Manages artwork metadata and coordinates image processing")
         Container(search_service, "Search Service", "Node.js, Elasticsearch", "Provides full-text search capabilities")
         Container(image_service, "Image Processing Service", "Python, Pillow", "Handles image processing, optimization, and storage")
-        Container(logging_service, "Logging and Monitoring Service", "ELK Stack", "Collects, stores, and visualizes logs")
         Container(config_service, "Configuration Service", "Node.js", "Manages shared configuration, including image version definitions")
         ContainerDb(database, "Database", "PostgreSQL", "Stores user data, artwork metadata, and gallery structure")
         ContainerDb(file_storage, "File Storage", "Amazon S3", "Stores processed images")
@@ -20,6 +19,8 @@ C4Container
 
     System_Ext(cdn, "Content Delivery Network", "CloudFront", "Serves optimized images and static assets")
     System_Ext(auth0, "Auth0", "Authentication Service", "Handles artist authentication and authorization")
+    System_Ext(heroku_logging, "Heroku Logging", "Logplex", "Aggregates logs from all services")
+    System_Ext(heroku_monitoring, "Heroku Monitoring", "Metrics", "Monitors system health and performance")
 
     Rel(user, web_app, "Views artwork")
     Rel(artist, artist_web_app, "Manages content")
@@ -41,13 +42,24 @@ C4Container
 
     Rel(cdn, file_storage, "Retrieves assets from", "HTTPS")
 
-    Rel(api_gateway, logging_service, "Sends logs", "TCP")
-    Rel(content_service, logging_service, "Sends logs", "TCP")
-    Rel(search_service, logging_service, "Sends logs", "TCP")
-    Rel(image_service, logging_service, "Sends logs", "TCP")
-
     Rel(web_app, config_service, "Reads image version config", "HTTPS")
     Rel(content_service, config_service, "Reads image version config", "HTTPS")
     Rel(image_service, config_service, "Reads image version config", "HTTPS")
+
+    Rel(web_app, heroku_logging, "Sends logs", "stdout/stderr")
+    Rel(artist_web_app, heroku_logging, "Sends logs", "stdout/stderr")
+    Rel(api_gateway, heroku_logging, "Sends logs", "stdout/stderr")
+    Rel(content_service, heroku_logging, "Sends logs", "stdout/stderr")
+    Rel(search_service, heroku_logging, "Sends logs", "stdout/stderr")
+    Rel(image_service, heroku_logging, "Sends logs", "stdout/stderr")
+    Rel(config_service, heroku_logging, "Sends logs", "stdout/stderr")
+
+    Rel(heroku_monitoring, web_app, "Monitors", "HTTPS")
+    Rel(heroku_monitoring, artist_web_app, "Monitors", "HTTPS")
+    Rel(heroku_monitoring, api_gateway, "Monitors", "HTTPS")
+    Rel(heroku_monitoring, content_service, "Monitors", "HTTPS")
+    Rel(heroku_monitoring, search_service, "Monitors", "HTTPS")
+    Rel(heroku_monitoring, image_service, "Monitors", "HTTPS")
+    Rel(heroku_monitoring, config_service, "Monitors", "HTTPS")
 
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")

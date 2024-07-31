@@ -7,12 +7,14 @@ C4Component
         Component(api_client, "API Client", "Axios", "Handles API requests to backend")
         Component(asset_loader, "Asset Loader", "React", "Loads images and static assets from CDN")
         Component(config_client, "Config Client", "JavaScript", "Fetches and caches configuration")
+        Component(web_logger, "Logger", "JavaScript", "Logs client-side events and errors")
     }
 
     Container_Boundary(artist_web_app, "Artist Web Application") {
         Component(artist_ui, "Artist UI Components", "React", "UI for content management")
         Component(artist_state, "Artist State Management", "Redux", "Manages artist application state")
         Component(artist_api_client, "Artist API Client", "Axios", "Handles API requests to backend")
+        Component(artist_logger, "Logger", "JavaScript", "Logs client-side events and errors")
     }
 
     Container_Boundary(api_gateway, "API Gateway") {
@@ -20,6 +22,7 @@ C4Component
         Component(auth_middleware, "Auth Middleware", "Auth0 SDK", "Handles authentication and authorization")
         Component(rate_limiter, "Rate Limiter", "Express-rate-limit", "Limits request rates")
         Component(error_handler, "Error Handler", "Express.js", "Centralized error handling")
+        Component(gateway_logger, "Logger", "Winston", "Logs API Gateway events and errors")
     }
 
     Container_Boundary(content_service, "Content Management Service") {
@@ -29,12 +32,14 @@ C4Component
         Component(image_coordinator, "Image Coordinator", "Node.js", "Coordinates image processing requests")
         Component(temp_storage_manager, "Temp Storage Manager", "Node.js", "Manages temporary storage of original images")
         Component(content_config_client, "Config Client", "Node.js", "Fetches and caches configuration")
+        Component(content_logger, "Logger", "Winston", "Logs Content Service events and errors")
     }
 
     Container_Boundary(search_service, "Search Service") {
         Component(search_controller, "Search Controller", "Node.js", "Handles search requests")
         Component(query_builder, "Query Builder", "Elasticsearch DSL", "Builds complex search queries")
         Component(results_formatter, "Results Formatter", "Node.js", "Formats search results")
+        Component(search_logger, "Logger", "Winston", "Logs Search Service events and errors")
     }
 
     Container_Boundary(image_service, "Image Processing Service") {
@@ -43,18 +48,14 @@ C4Component
         Component(metadata_extractor, "Metadata Extractor", "Python/Pillow", "Extracts image metadata")
         Component(storage_manager, "Storage Manager", "Python", "Manages interactions with file storage")
         Component(image_config_client, "Config Client", "Python", "Fetches and caches configuration")
+        Component(image_logger, "Logger", "Python logging", "Logs Image Service events and errors")
     }
 
     Container_Boundary(config_service, "Configuration Service") {
         Component(config_api, "Config API", "Node.js", "Serves configuration data")
         Component(config_manager, "Config Manager", "Node.js", "Manages and updates configurations")
         Component(version_config, "Image Version Config", "JSON", "Defines image versions and properties")
-    }
-
-    Container_Boundary(logging_service, "Logging and Monitoring Service") {
-        Component(log_collector, "Log Collector", "Logstash", "Collects logs from all services")
-        Component(log_storage, "Log Storage", "Elasticsearch", "Stores and indexes logs")
-        Component(log_visualizer, "Log Visualizer", "Kibana", "Provides a UI for log analysis")
+        Component(config_logger, "Logger", "Winston", "Logs Configuration Service events and errors")
     }
 
     ContainerDb(database, "Database", "PostgreSQL", "Stores user data, artwork metadata, and gallery structure")
@@ -63,38 +64,44 @@ C4Component
 
     System_Ext(cdn, "Content Delivery Network", "CloudFront")
     System_Ext(auth0, "Auth0", "Authentication Server")
+    System_Ext(heroku_logging, "Heroku Logging", "Logplex")
+    System_Ext(heroku_monitoring, "Heroku Monitoring", "Metrics")
 
     Rel(ui_components, state_management, "Uses")
     Rel(ui_components, api_client, "Uses")
     Rel(ui_components, asset_loader, "Uses")
     Rel(ui_components, config_client, "Uses")
+    Rel(ui_components, web_logger, "Logs events")
 
     Rel(artist_ui, artist_state, "Uses")
     Rel(artist_ui, artist_api_client, "Uses")
+    Rel(artist_ui, artist_logger, "Logs events")
 
     Rel(request_router, auth_middleware, "Uses")
     Rel(request_router, rate_limiter, "Uses")
     Rel(request_router, error_handler, "Uses")
+    Rel(request_router, gateway_logger, "Logs events")
 
     Rel(content_controller, metadata_manager, "Uses")
     Rel(content_controller, gallery_organizer, "Uses")
     Rel(content_controller, image_coordinator, "Uses")
     Rel(image_coordinator, temp_storage_manager, "Uses")
     Rel(image_coordinator, content_config_client, "Uses")
+    Rel(content_controller, content_logger, "Logs events")
 
     Rel(search_controller, query_builder, "Uses")
     Rel(search_controller, results_formatter, "Uses")
+    Rel(search_controller, search_logger, "Logs events")
 
     Rel(image_processor, format_converter, "Uses")
     Rel(image_processor, metadata_extractor, "Uses")
     Rel(image_processor, storage_manager, "Uses")
     Rel(image_processor, image_config_client, "Uses")
+    Rel(image_processor, image_logger, "Logs events")
 
     Rel(config_api, config_manager, "Uses")
     Rel(config_manager, version_config, "Manages")
-
-    Rel(log_collector, log_storage, "Stores logs in")
-    Rel(log_visualizer, log_storage, "Reads from")
+    Rel(config_api, config_logger, "Logs events")
 
     Rel(api_client, request_router, "Sends requests to", "HTTPS")
     Rel(artist_api_client, request_router, "Sends requests to", "HTTPS")
@@ -117,9 +124,20 @@ C4Component
     Rel(content_config_client, config_api, "Fetches config", "HTTPS")
     Rel(image_config_client, config_api, "Fetches config", "HTTPS")
 
-    Rel(error_handler, log_collector, "Sends logs", "TCP")
-    Rel(content_controller, log_collector, "Sends logs", "TCP")
-    Rel(search_controller, log_collector, "Sends logs", "TCP")
-    Rel(image_processor, log_collector, "Sends logs", "TCP")
+    Rel(web_logger, heroku_logging, "Sends logs", "stdout/stderr")
+    Rel(artist_logger, heroku_logging, "Sends logs", "stdout/stderr")
+    Rel(gateway_logger, heroku_logging, "Sends logs", "stdout/stderr")
+    Rel(content_logger, heroku_logging, "Sends logs", "stdout/stderr")
+    Rel(search_logger, heroku_logging, "Sends logs", "stdout/stderr")
+    Rel(image_logger, heroku_logging, "Sends logs", "stdout/stderr")
+    Rel(config_logger, heroku_logging, "Sends logs", "stdout/stderr")
+
+    Rel(heroku_monitoring, ui_components, "Monitors", "HTTPS")
+    Rel(heroku_monitoring, artist_ui, "Monitors", "HTTPS")
+    Rel(heroku_monitoring, request_router, "Monitors", "HTTPS")
+    Rel(heroku_monitoring, content_controller, "Monitors", "HTTPS")
+    Rel(heroku_monitoring, search_controller, "Monitors", "HTTPS")
+    Rel(heroku_monitoring, image_processor, "Monitors", "HTTPS")
+    Rel(heroku_monitoring, config_api, "Monitors", "HTTPS")
 
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")
