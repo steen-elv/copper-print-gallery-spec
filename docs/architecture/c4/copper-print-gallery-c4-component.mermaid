@@ -1,12 +1,12 @@
 C4Component
-    title C4 Component Diagram - Copper Print Gallery System
+    title C4 Component Diagram - Copper Print Gallery System (Refined)
 
     Container_Boundary(web_app, "Web Application") {
         Component(ui_components, "UI Components", "React", "Reusable UI elements (e.g., Gallery, ImageViewer)")
         Component(state_management, "State Management", "Redux", "Manages application state")
         Component(api_client, "API Client", "Axios", "Handles API requests to backend")
         Component(asset_loader, "Asset Loader", "React", "Loads images and static assets from CDN")
-        Component(config_client, "Config Client", "JavaScript", "Fetches and caches configuration")
+        Component(config_loader, "Config Loader", "JavaScript", "Loads configuration from environment variables")
         Component(web_logger, "Logger", "JavaScript", "Logs client-side events and errors")
     }
 
@@ -14,6 +14,7 @@ C4Component
         Component(artist_ui, "Artist UI Components", "React", "UI for content management")
         Component(artist_state, "Artist State Management", "Redux", "Manages artist application state")
         Component(artist_api_client, "Artist API Client", "Axios", "Handles API requests to backend")
+        Component(artist_config_loader, "Config Loader", "JavaScript", "Loads configuration from environment variables")
         Component(artist_logger, "Logger", "JavaScript", "Logs client-side events and errors")
     }
 
@@ -22,6 +23,7 @@ C4Component
         Component(auth_middleware, "Auth Middleware", "Auth0 SDK", "Handles authentication and authorization")
         Component(rate_limiter, "Rate Limiter", "Express-rate-limit", "Limits request rates")
         Component(error_handler, "Error Handler", "Express.js", "Centralized error handling")
+        Component(gateway_config_loader, "Config Loader", "Node.js", "Loads configuration from environment variables")
         Component(gateway_logger, "Logger", "Winston", "Logs API Gateway events and errors")
     }
 
@@ -31,7 +33,7 @@ C4Component
         Component(gallery_organizer, "Gallery Organizer", "Node.js", "Organizes galleries and artwork order")
         Component(image_coordinator, "Image Coordinator", "Node.js", "Coordinates image processing requests")
         Component(temp_storage_manager, "Temp Storage Manager", "Node.js", "Manages temporary storage of original images")
-        Component(content_config_client, "Config Client", "Node.js", "Fetches and caches configuration")
+        Component(content_config_loader, "Config Loader", "Node.js", "Loads configuration from environment variables")
         Component(content_logger, "Logger", "Winston", "Logs Content Service events and errors")
     }
 
@@ -39,6 +41,7 @@ C4Component
         Component(search_controller, "Search Controller", "Node.js", "Handles search requests")
         Component(query_builder, "Query Builder", "Elasticsearch DSL", "Builds complex search queries")
         Component(results_formatter, "Results Formatter", "Node.js", "Formats search results")
+        Component(search_config_loader, "Config Loader", "Node.js", "Loads configuration from environment variables")
         Component(search_logger, "Logger", "Winston", "Logs Search Service events and errors")
     }
 
@@ -47,15 +50,8 @@ C4Component
         Component(format_converter, "Format Converter", "Python/Pillow", "Converts image formats")
         Component(metadata_extractor, "Metadata Extractor", "Python/Pillow", "Extracts image metadata")
         Component(storage_manager, "Storage Manager", "Python", "Manages interactions with file storage")
-        Component(image_config_client, "Config Client", "Python", "Fetches and caches configuration")
+        Component(image_config_loader, "Config Loader", "Python", "Loads configuration from environment variables")
         Component(image_logger, "Logger", "Python logging", "Logs Image Service events and errors")
-    }
-
-    Container_Boundary(config_service, "Configuration Service") {
-        Component(config_api, "Config API", "Node.js", "Serves configuration data")
-        Component(config_manager, "Config Manager", "Node.js", "Manages and updates configurations")
-        Component(version_config, "Image Version Config", "JSON", "Defines image versions and properties")
-        Component(config_logger, "Logger", "Winston", "Logs Configuration Service events and errors")
     }
 
     ContainerDb(database, "Database", "PostgreSQL", "Stores user data, artwork metadata, and gallery structure")
@@ -70,38 +66,37 @@ C4Component
     Rel(ui_components, state_management, "Uses")
     Rel(ui_components, api_client, "Uses")
     Rel(ui_components, asset_loader, "Uses")
-    Rel(ui_components, config_client, "Uses")
+    Rel(ui_components, config_loader, "Uses")
     Rel(ui_components, web_logger, "Logs events")
 
     Rel(artist_ui, artist_state, "Uses")
     Rel(artist_ui, artist_api_client, "Uses")
+    Rel(artist_ui, artist_config_loader, "Uses")
     Rel(artist_ui, artist_logger, "Logs events")
 
     Rel(request_router, auth_middleware, "Uses")
     Rel(request_router, rate_limiter, "Uses")
     Rel(request_router, error_handler, "Uses")
+    Rel(request_router, gateway_config_loader, "Uses")
     Rel(request_router, gateway_logger, "Logs events")
 
     Rel(content_controller, metadata_manager, "Uses")
     Rel(content_controller, gallery_organizer, "Uses")
     Rel(content_controller, image_coordinator, "Uses")
     Rel(image_coordinator, temp_storage_manager, "Uses")
-    Rel(image_coordinator, content_config_client, "Uses")
+    Rel(content_controller, content_config_loader, "Uses")
     Rel(content_controller, content_logger, "Logs events")
 
     Rel(search_controller, query_builder, "Uses")
     Rel(search_controller, results_formatter, "Uses")
+    Rel(search_controller, search_config_loader, "Uses")
     Rel(search_controller, search_logger, "Logs events")
 
     Rel(image_processor, format_converter, "Uses")
     Rel(image_processor, metadata_extractor, "Uses")
     Rel(image_processor, storage_manager, "Uses")
-    Rel(image_processor, image_config_client, "Uses")
+    Rel(image_processor, image_config_loader, "Uses")
     Rel(image_processor, image_logger, "Logs events")
-
-    Rel(config_api, config_manager, "Uses")
-    Rel(config_manager, version_config, "Manages")
-    Rel(config_api, config_logger, "Logs events")
 
     Rel(api_client, request_router, "Sends requests to", "HTTPS")
     Rel(artist_api_client, request_router, "Sends requests to", "HTTPS")
@@ -120,17 +115,12 @@ C4Component
 
     Rel(cdn, file_storage, "Retrieves assets from", "HTTPS")
 
-    Rel(config_client, config_api, "Fetches config", "HTTPS")
-    Rel(content_config_client, config_api, "Fetches config", "HTTPS")
-    Rel(image_config_client, config_api, "Fetches config", "HTTPS")
-
     Rel(web_logger, heroku_logging, "Sends logs", "stdout/stderr")
     Rel(artist_logger, heroku_logging, "Sends logs", "stdout/stderr")
     Rel(gateway_logger, heroku_logging, "Sends logs", "stdout/stderr")
     Rel(content_logger, heroku_logging, "Sends logs", "stdout/stderr")
     Rel(search_logger, heroku_logging, "Sends logs", "stdout/stderr")
     Rel(image_logger, heroku_logging, "Sends logs", "stdout/stderr")
-    Rel(config_logger, heroku_logging, "Sends logs", "stdout/stderr")
 
     Rel(heroku_monitoring, ui_components, "Monitors", "HTTPS")
     Rel(heroku_monitoring, artist_ui, "Monitors", "HTTPS")
@@ -138,6 +128,5 @@ C4Component
     Rel(heroku_monitoring, content_controller, "Monitors", "HTTPS")
     Rel(heroku_monitoring, search_controller, "Monitors", "HTTPS")
     Rel(heroku_monitoring, image_processor, "Monitors", "HTTPS")
-    Rel(heroku_monitoring, config_api, "Monitors", "HTTPS")
 
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")
