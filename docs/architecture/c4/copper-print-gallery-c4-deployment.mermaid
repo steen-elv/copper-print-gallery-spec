@@ -1,5 +1,5 @@
 C4Deployment
-    title Copper Print Gallery System - Deployment Diagram
+    title Copper Print Gallery System - Deployment Diagram (Corrected)
 
     Deployment_Node(aws, "Amazon Web Services (AWS)", "Cloud") {
         Deployment_Node(s3, "Amazon S3", "Object Storage") {
@@ -19,13 +19,9 @@ C4Deployment
         Deployment_Node(api_dyno, "API Dyno", "Heroku Dyno") {
             Container(api_gateway, "API Gateway", "Node.js, Express.js", "Routes requests, handles authentication and rate limiting")
         }
-        Deployment_Node(content_dyno, "Content Dyno", "Heroku Dyno") {
+        Deployment_Node(service_dynos, "Service Dynos", "Heroku Dynos") {
             Container(content_service, "Content Management Service", "Node.js", "Manages artwork metadata and coordinates image processing")
-        }
-        Deployment_Node(search_dyno, "Search Dyno", "Heroku Dyno") {
             Container(search_service, "Search Service", "Node.js, Elasticsearch", "Provides full-text search capabilities")
-        }
-        Deployment_Node(image_dyno, "Image Dyno", "Heroku Dyno") {
             Container(image_service, "Image Processing Service", "Python, Pillow", "Handles image processing, optimization, and storage")
         }
         Deployment_Node(heroku_postgres, "Heroku Postgres", "Managed Database") {
@@ -34,11 +30,8 @@ C4Deployment
         Deployment_Node(heroku_addons, "Heroku Add-ons", "Managed Services") {
             Container(heroku_logging, "Heroku Logging", "Logplex", "Aggregates logs from all services")
             Container(heroku_monitoring, "Heroku Monitoring", "Metrics", "Monitors system health and performance")
+            Container(auth0, "Auth0", "Authentication Add-on", "Handles artist authentication and authorization")
         }
-    }
-
-    Deployment_Node(auth0_cloud, "Auth0", "Authentication as a Service") {
-        Container(auth0, "Auth0", "Authentication Service", "Handles artist authentication and authorization")
     }
 
     Rel(web_app, api_gateway, "Makes API calls", "JSON/HTTPS")
