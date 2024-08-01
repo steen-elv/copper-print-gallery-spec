@@ -1,0 +1,76 @@
+C4Deployment
+    title Copper Print Gallery System - Deployment Diagram
+
+    Deployment_Node(aws, "Amazon Web Services (AWS)", "Cloud") {
+        Deployment_Node(s3, "Amazon S3", "Object Storage") {
+            Container(file_storage, "File Storage", "S3 Bucket", "Stores processed images")
+            Container(temp_storage, "Temporary Storage", "S3 Bucket", "Temporarily stores original images during processing")
+        }
+        Deployment_Node(cloudfront, "CloudFront", "CDN") {
+            Container(cdn, "Content Delivery Network", "CloudFront Distribution", "Serves optimized images and static assets")
+        }
+    }
+
+    Deployment_Node(heroku, "Heroku", "Cloud Platform") {
+        Deployment_Node(web_dyno, "Web Dyno", "Heroku Dyno") {
+            Container(web_app, "Web Application", "React, Redux", "Provides the public-facing gallery website")
+            Container(artist_web_app, "Artist Web Application", "React, Redux", "Provides content management interface")
+        }
+        Deployment_Node(api_dyno, "API Dyno", "Heroku Dyno") {
+            Container(api_gateway, "API Gateway", "Node.js, Express.js", "Routes requests, handles authentication and rate limiting")
+        }
+        Deployment_Node(content_dyno, "Content Dyno", "Heroku Dyno") {
+            Container(content_service, "Content Management Service", "Node.js", "Manages artwork metadata and coordinates image processing")
+        }
+        Deployment_Node(search_dyno, "Search Dyno", "Heroku Dyno") {
+            Container(search_service, "Search Service", "Node.js, Elasticsearch", "Provides full-text search capabilities")
+        }
+        Deployment_Node(image_dyno, "Image Dyno", "Heroku Dyno") {
+            Container(image_service, "Image Processing Service", "Python, Pillow", "Handles image processing, optimization, and storage")
+        }
+        Deployment_Node(heroku_postgres, "Heroku Postgres", "Managed Database") {
+            ContainerDb(database, "Database", "PostgreSQL", "Stores user data, artwork metadata, and gallery structure")
+        }
+        Deployment_Node(heroku_addons, "Heroku Add-ons", "Managed Services") {
+            Container(heroku_logging, "Heroku Logging", "Logplex", "Aggregates logs from all services")
+            Container(heroku_monitoring, "Heroku Monitoring", "Metrics", "Monitors system health and performance")
+        }
+    }
+
+    Deployment_Node(auth0_cloud, "Auth0", "Authentication as a Service") {
+        Container(auth0, "Auth0", "Authentication Service", "Handles artist authentication and authorization")
+    }
+
+    Rel(web_app, api_gateway, "Makes API calls", "JSON/HTTPS")
+    Rel(artist_web_app, api_gateway, "Makes API calls", "JSON/HTTPS")
+    Rel(web_app, cdn, "Loads assets from", "HTTPS")
+    Rel(artist_web_app, cdn, "Loads assets from", "HTTPS")
+
+    Rel(api_gateway, auth0, "Authenticates artist", "HTTPS")
+    Rel(api_gateway, content_service, "Routes requests", "JSON/HTTPS")
+    Rel(api_gateway, search_service, "Routes requests", "JSON/HTTPS")
+
+    Rel(content_service, image_service, "Requests image processing", "JSON/HTTPS")
+    Rel(content_service, database, "Reads from and writes to", "SQL/TCP")
+    Rel(content_service, temp_storage, "Stores original images", "HTTPS")
+    Rel(search_service, database, "Reads from", "SQL/TCP")
+    Rel(image_service, temp_storage, "Reads original images", "HTTPS")
+    Rel(image_service, file_storage, "Stores and retrieves processed images", "HTTPS")
+
+    Rel(cdn, file_storage, "Retrieves assets from", "HTTPS")
+
+    Rel(web_app, heroku_logging, "Sends logs", "stdout/stderr")
+    Rel(artist_web_app, heroku_logging, "Sends logs", "stdout/stderr")
+    Rel(api_gateway, heroku_logging, "Sends logs", "stdout/stderr")
+    Rel(content_service, heroku_logging, "Sends logs", "stdout/stderr")
+    Rel(search_service, heroku_logging, "Sends logs", "stdout/stderr")
+    Rel(image_service, heroku_logging, "Sends logs", "stdout/stderr")
+
+    Rel(heroku_monitoring, web_app, "Monitors", "HTTPS")
+    Rel(heroku_monitoring, artist_web_app, "Monitors", "HTTPS")
+    Rel(heroku_monitoring, api_gateway, "Monitors", "HTTPS")
+    Rel(heroku_monitoring, content_service, "Monitors", "HTTPS")
+    Rel(heroku_monitoring, search_service, "Monitors", "HTTPS")
+    Rel(heroku_monitoring, image_service, "Monitors", "HTTPS")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
