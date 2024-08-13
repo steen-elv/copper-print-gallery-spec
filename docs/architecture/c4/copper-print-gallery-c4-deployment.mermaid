@@ -1,8 +1,8 @@
 C4Deployment
-    title Copper Print Gallery System - Deployment Diagram (With Security and DNS)
+    title Copper Print Gallery System - Deployment Diagram (Standard Heroku Environment)
 
     Deployment_Node(dns, "DNS", "Domain Name System") {
-        Container(dns_records, "DNS Records", "A, CNAME", "copperprintgallery.com, *.copperprintgallery.com")
+        Container(dns_records, "DNS Records", "A, CNAME", "api.copperprintgallery.com, www.copperprintgallery.com")
     }
 
     Deployment_Node(aws, "Amazon Web Services (AWS)", "Cloud") {
@@ -16,26 +16,28 @@ C4Deployment
     }
 
     Deployment_Node(heroku, "Heroku", "Cloud Platform") {
-        Deployment_Node(heroku_ssl, "Heroku SSL", "TLS Termination") {
-            Container(ssl_termination, "SSL Termination", "ACM", "Terminates SSL/TLS connections")
-        }
-        Deployment_Node(public_web_dyno, "Public Web Dyno", "Heroku Web Dyno") {
+        Container(heroku_router, "Heroku Router", "Load Balancer, SSL Termination", "Routes traffic to all Heroku apps")
+
+        Deployment_Node(public_web_app, "Public Web App", "Heroku App") {
             Container(web_app, "Web Application", "React", "Serves the public-facing gallery website for anonymous viewing")
         }
-        Deployment_Node(artist_web_dyno, "Artist Web Dyno", "Heroku Web Dyno") {
+        Deployment_Node(artist_web_app, "Artist Web App", "Heroku App") {
             Container(artist_web_app, "Artist Web Application", "React", "Provides secure interface for artist to manage content")
         }
-        Deployment_Node(api_web_dyno, "API Web Dyno", "Heroku Web Dyno") {
-            Container(api_gateway, "API Gateway", "Node.js, Express.js", "Routes requests, handles authentication and rate limiting")
+        Deployment_Node(api_gateway_app, "API Gateway App", "Heroku App") {
+            Container(api_gateway, "API Gateway", "Node.js, Express.js", "Routes requests, handles authentication, acts as logical reverse proxy")
         }
-        Deployment_Node(content_worker_dyno, "Content Worker Dyno", "Heroku Worker Dyno") {
-            Container(content_service, "Content Management Service", "Node.js", "Manages artwork metadata and coordinates image processing")
+        Deployment_Node(content_app, "Content Management App", "Heroku App") {
+            Container(content_service, "Content Management Service", "Node.js", "Handles content-related API requests")
         }
-        Deployment_Node(search_worker_dyno, "Search Worker Dyno", "Heroku Worker Dyno") {
-            Container(search_service, "Search Service", "Node.js, Elasticsearch", "Provides full-text search capabilities")
+        Deployment_Node(search_app, "Search App", "Heroku App") {
+            Container(search_service, "Search Service", "Node.js, Elasticsearch", "Handles search-related API requests")
         }
-        Deployment_Node(image_worker_dyno, "Image Worker Dyno", "Heroku Worker Dyno") {
-            Container(image_service, "Image Processing Service", "Python, Pillow", "Handles image processing, optimization, and storage")
+        Deployment_Node(image_app, "Image Processing App", "Heroku App") {
+            Container(image_service, "Image Processing Service", "Python, Flask", "Handles image processing API requests")
+        }
+        Deployment_Node(worker_app, "Worker App", "Heroku App") {
+            Container(background_jobs, "Background Jobs", "Node.js/Python", "Handles background tasks (e.g., batch processing, indexing)")
         }
         Deployment_Node(heroku_postgres, "Heroku Postgres", "Managed Database") {
             ContainerDb(database, "Database", "PostgreSQL", "Stores user data, artwork metadata, and gallery structure")
@@ -47,42 +49,33 @@ C4Deployment
         }
     }
 
-    Rel(dns_records, ssl_termination, "Directs to", "DNS")
+    Rel(dns_records, heroku_router, "Directs to", "DNS")
 
-    Rel(ssl_termination, web_app, "Routes HTTPS traffic", "HTTPS")
-    Rel(ssl_termination, artist_web_app, "Routes HTTPS traffic", "HTTPS")
-    Rel(ssl_termination, api_gateway, "Routes HTTPS traffic", "HTTPS")
+    Rel(heroku_router, web_app, "Routes traffic", "HTTPS")
+    Rel(heroku_router, artist_web_app, "Routes traffic", "HTTPS")
+    Rel(heroku_router, api_gateway, "Routes traffic", "HTTPS")
+    Rel(heroku_router, content_service, "Routes traffic (restricted)", "HTTPS")
+    Rel(heroku_router, search_service, "Routes traffic (restricted)", "HTTPS")
+    Rel(heroku_router, image_service, "Routes traffic (restricted)", "HTTPS")
 
-    Rel(web_app, api_gateway, "Makes API calls", "HTTPS")
-    Rel(artist_web_app, api_gateway, "Makes API calls", "HTTPS")
+    Rel(api_gateway, content_service, "Forwards authenticated requests", "HTTPS")
+    Rel(api_gateway, search_service, "Forwards authenticated requests", "HTTPS")
+    Rel(api_gateway, image_service, "Forwards authenticated requests", "HTTPS")
+
+    Rel(content_service, background_jobs, "Schedules tasks", "HTTPS")
+    Rel(search_service, background_jobs, "Schedules indexing", "HTTPS")
+    Rel(image_service, background_jobs, "Schedules batch processing", "HTTPS")
+
     Rel(web_app, cdn, "Loads assets from", "HTTPS")
     Rel(artist_web_app, cdn, "Loads assets from", "HTTPS")
 
     Rel(api_gateway, auth0, "Authenticates artist", "HTTPS")
-    Rel(api_gateway, content_service, "Routes requests", "Internal HTTPS")
-    Rel(api_gateway, search_service, "Routes requests", "Internal HTTPS")
-    Rel(api_gateway, image_service, "Routes requests", "Internal HTTPS")
 
     Rel(content_service, database, "Reads from and writes to", "SSL/TLS")
-    Rel(content_service, temp_storage, "Stores original images", "HTTPS")
     Rel(search_service, database, "Reads from", "SSL/TLS")
-    Rel(image_service, temp_storage, "Reads original images", "HTTPS")
-    Rel(image_service, file_storage, "Stores and retrieves processed images", "HTTPS")
+    Rel(background_jobs, temp_storage, "Reads/Writes images", "HTTPS")
+    Rel(background_jobs, file_storage, "Stores processed images", "HTTPS")
 
     Rel(cdn, file_storage, "Retrieves assets from", "HTTPS")
-
-    Rel(web_app, heroku_logging, "Sends logs", "Internal")
-    Rel(artist_web_app, heroku_logging, "Sends logs", "Internal")
-    Rel(api_gateway, heroku_logging, "Sends logs", "Internal")
-    Rel(content_service, heroku_logging, "Sends logs", "Internal")
-    Rel(search_service, heroku_logging, "Sends logs", "Internal")
-    Rel(image_service, heroku_logging, "Sends logs", "Internal")
-
-    Rel(heroku_monitoring, web_app, "Monitors", "Internal")
-    Rel(heroku_monitoring, artist_web_app, "Monitors", "Internal")
-    Rel(heroku_monitoring, api_gateway, "Monitors", "Internal")
-    Rel(heroku_monitoring, content_service, "Monitors", "Internal")
-    Rel(heroku_monitoring, search_service, "Monitors", "Internal")
-    Rel(heroku_monitoring, image_service, "Monitors", "Internal")
 
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")
