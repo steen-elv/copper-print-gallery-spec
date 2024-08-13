@@ -1,63 +1,73 @@
-# ADR: Configuration Management through Environment Variables and Terraform
+# ADR: Configuration Management for Hybrid Deployment
 
 ## Date
-2024-07-31
-
-## Status
-Proposed
+2024-07-31 (Updated: 2024-08-01)
 
 ## Context
-The Copper Print Gallery system requires a method to manage configuration across its services. Initially, we considered implementing a separate Configuration Service. However, given our relatively small number of services, our choice of Heroku as a deployment platform, and our use of Terraform for infrastructure management, we need to reassess this approach.
+The Copper Print Gallery system requires a method to manage configuration across its services. With our decision to adopt a hybrid deployment strategy using both Heroku and AWS Lambda, we need to reassess our configuration management approach.
 
 ## Decision
-We have decided to manage configuration through Heroku environment variables and Terraform, rather than implementing a separate Configuration Service.
+We have decided to use a combination of Heroku Config Vars and AWS Systems Manager Parameter Store for configuration management:
+
+1. For Heroku-deployed services: Continue using Heroku Config Vars.
+2. For AWS Lambda functions: Use AWS Systems Manager Parameter Store.
+3. Implement a unified configuration loading mechanism in our application code to abstract the source of configuration.
 
 ## Rationale
-1. Simplicity: With a small number of services, duplicating configuration is simpler than maintaining a separate service.
-2. Alignment with Deployment Environment: Heroku's environment variables provide a straightforward way to manage configuration for each service.
-3. Infrastructure as Code: Terraform allows us to version control our configuration alongside our infrastructure definition.
-4. Reduced Dependencies: Eliminating the Configuration Service reduces inter-service dependencies, potentially improving system resilience.
-5. Performance: Direct access to configuration within each service eliminates network calls, potentially improving performance.
-6. Scalability: This approach is manageable for the current scale of the Copper Print Gallery system.
+1. Consistency with Platforms: This approach aligns with the best practices for each platform.
+2. Security: Both Heroku Config Vars and AWS Systems Manager Parameter Store provide secure ways to store sensitive configuration data.
+3. Scalability: AWS Systems Manager Parameter Store can handle configuration for multiple Lambda functions efficiently.
+4. Ease of Management: Both systems provide easy-to-use interfaces for managing configuration.
 
 ## Implementation Approach
-1. Define common configuration (e.g., image version definitions) in a shared Terraform module.
-2. Use this module in the Terraform configurations for each service that needs the common config.
-3. Apply service-specific configurations directly in each service's Terraform configuration.
-4. Use Heroku environment variables to inject these configurations into each service at runtime.
-5. Implement a simple configuration loading mechanism in each service to read from environment variables.
+1. For Heroku services:
+    - Continue using Heroku Config Vars for configuration.
+    - Use Terraform to manage Heroku Config Vars.
+
+2. For AWS Lambda functions:
+    - Store configuration in AWS Systems Manager Parameter Store.
+    - Use Terraform to manage Parameter Store entries.
+
+3. Application code:
+    - Implement a unified configuration loading mechanism that can fetch from either Heroku Config Vars or AWS Systems Manager Parameter Store based on the deployment environment.
+    - Use environment variables to indicate the deployment environment (Heroku or AWS).
+
+4. Shared Configuration:
+    - For configuration that needs to be shared across both environments, store in both Heroku Config Vars and AWS Systems Manager Parameter Store.
+    - Implement a synchronization mechanism to ensure consistency.
+
+5. Local Development:
+    - Use dotenv files to mimic both Heroku Config Vars and AWS Systems Manager Parameter Store locally.
 
 ## Consequences
 
 ### Positive
-- Simplified system architecture by removing a separate Configuration Service.
-- Direct alignment with our Heroku deployment strategy and Terraform usage.
-- Improved performance due to local configuration access.
-- Easier deployment and testing of configuration changes.
+- Aligned with best practices for each platform.
+- Secure storage of configuration data.
+- Flexibility to manage configuration for different environments.
 
 ### Negative
-- Potential for configuration drift if not managed carefully.
-- Duplication of configuration across services.
-- May require more effort to update configuration across all services.
+- Increased complexity in managing configuration across two systems.
+- Need for a custom configuration loading mechanism in application code.
 
 ### Risks
-- As the system grows, this approach may become more difficult to manage.
-- Inconsistencies could arise if configuration updates are not applied uniformly across all services.
+- Potential for configuration inconsistencies between environments.
+- Increased overhead in maintaining synchronization for shared configuration.
 
 ## Mitigation Strategies
-- Implement strict processes for updating configuration to ensure consistency.
-- Regularly audit configurations across services to detect and correct any inconsistencies.
-- Consider implementing a simple shared library for configuration loading to ensure consistent handling across services.
+- Implement automated tests to verify configuration consistency across environments.
+- Use Terraform to manage configuration for both platforms, ensuring version control and consistency.
+- Regularly audit configurations to detect and correct any inconsistencies.
 
 ## Alternatives Considered
-1. Separate Configuration Service: Rejected due to added complexity and unnecessary network calls for our current scale.
-2. Distributed Configuration Store (e.g., etcd): Considered overly complex for our current needs.
+1. Using only AWS Systems Manager Parameter Store for all services: Rejected to maintain alignment with Heroku best practices for Heroku-deployed services.
+2. Implementing a custom Configuration Service: Considered overly complex for our current needs.
 
 ## Related Decisions
-- Heroku Deployment Strategy for Copper Print Gallery
-- Use Terraform for Infrastructure Management in Copper Print Gallery
-- Overall system architecture and service decomposition (C4 container and component diagrams)
+- Hybrid Deployment Strategy
+- Use of Terraform for Infrastructure Management
 
 ## References
 - Heroku Config Vars: [https://devcenter.heroku.com/articles/config-vars](https://devcenter.heroku.com/articles/config-vars)
-- Terraform Heroku Provider: [https://registry.terraform.io/providers/heroku/heroku/latest/docs](https://registry.terraform.io/providers/heroku/heroku/latest/docs)
+- AWS Systems Manager Parameter Store: [https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html)
+- Terraform AWS Provider: [https://registry.terraform.io/providers/hashicorp/aws/latest/docs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)

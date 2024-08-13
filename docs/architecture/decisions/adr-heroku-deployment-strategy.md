@@ -1,74 +1,61 @@
-# ADR: Heroku Deployment Strategy for Copper Print Gallery
+# ADR: Hybrid Deployment Strategy for Copper Print Gallery
 
 ## Date
-2024-07-31
+2024-07-31 (Updated: 2024-08-01)
 
 ## Status
 Proposed
 
 ## Context
-The Copper Print Gallery system needs a deployment environment that is easy to manage, cost-effective, and suitable for a small-scale application (less than 100 daily users, one artist). We are starting from scratch with no existing infrastructure, and scaling is not a priority in the foreseeable future.
+The Copper Print Gallery system needs a deployment environment that is easy to manage, cost-effective, and suitable for a small-scale application (less than 100 daily users, one artist). Our initial decision to use Heroku for all services proved to be more expensive than anticipated, requiring an Enterprise license to comply with all our ADRs.
 
 ## Decision
-We have decided to use Heroku as the deployment platform for the Copper Print Gallery system.
+We have decided to adopt a hybrid deployment strategy:
+1. Use Heroku for public-facing services (Web Application, Artist Web Application, API Gateway)
+2. Use AWS Lambda for backend services with no public API (Content Management Service, Search Service, Image Processing Service)
 
 ## Rationale
-1. Simplicity: Heroku offers a straightforward deployment process with minimal DevOps knowledge required.
-2. Managed Services: Heroku provides managed PostgreSQL, which aligns with our database needs.
-3. Cost-Effectiveness: At our current scale, we can likely utilize Heroku's lower-tier plans, which are reasonably priced.
-4. Easy Deployment: Heroku integrates well with Git, allowing for simple deployments directly from our repository.
-5. Add-ons Ecosystem: Heroku's wide range of add-ons for services like logging and monitoring can be easily integrated as needed.
-6. Scalability: While not an immediate concern, Heroku allows for easy vertical and horizontal scaling if needed in the future.
+1. Cost-Effectiveness: This hybrid approach allows us to leverage the cost benefits of serverless architecture for less-frequently accessed backend services while maintaining Heroku's simplicity for public-facing components.
+2. Scalability: AWS Lambda can automatically scale to handle varying loads, which aligns well with the system's current small scale but allows for future growth.
+3. Flexibility: This approach gives us the flexibility to optimize each service based on its specific needs and usage patterns.
+4. Minimal Disruption: Keeping public-facing services on Heroku minimizes changes to those components and maintains some consistency with our original plan.
 
 ## Consequences
 
 ### Positive
-- Reduced operational overhead due to platform management by Heroku.
-- Quick and easy deployment process.
-- Built-in support for many of our required services (PostgreSQL).
-- Basic monitoring and logging through Heroku's dashboard.
-- Improved consistency and reproducibility of our infrastructure setup across different environments.
-- Easier management of infrastructure changes over time.
+- Reduced overall costs compared to full Heroku deployment.
+- Improved scalability for backend services.
+- Maintains the simplicity of Heroku for public-facing components.
 
 ### Negative
-- Potential for higher costs if the application scales significantly.
-- Less fine-grained control over the infrastructure compared to IaaS solutions.
-- Some level of vendor lock-in to Heroku's ecosystem.
+- Increased complexity in deployment and management.
+- Need for expertise in both Heroku and AWS Lambda.
+- Potential latency issues between Heroku and Lambda services.
 
 ### Risks
-- Dependency on Heroku's uptime and reliability.
-- Potential challenges if we need to migrate away from Heroku in the future.
-- Basic logging and monitoring tools may need to be supplemented for more advanced needs.
+- Increased complexity in the overall system architecture.
+- Potential challenges in maintaining consistency across different environments.
+- May require changes to some services to fit the Lambda execution model.
 
 ## Implementation Strategy
-1. Set up a Heroku account for the Copper Print Gallery project.
-2. Use Terraform to define and manage our Heroku infrastructure:
-    - Define Heroku apps for each service (or a single app with multiple processes, depending on our final architecture decision).
-    - Set up Heroku PostgreSQL add-on for the database.
-    - Configure environment variables for service-specific configurations.
-    - Define and manage Heroku buildpacks, including the Python buildpack for the Image Processing Service.
-3. Use Terraform to set up and manage the Amazon S3 bucket for file storage.
-4. Store sensitive credentials (like S3 access keys) in Heroku Config Vars, managed through Terraform.
-5. Implement a CI/CD pipeline that uses Terraform for infrastructure changes and Heroku's Git integration for application deployments.
-6. Utilize Heroku's basic logging and monitoring tools, with the understanding that we may need to supplement these with more advanced solutions in the future.
+1. Keep Web Application, Artist Web Application, and API Gateway on Heroku.
+2. Migrate Content Management Service, Search Service, and Image Processing Service to AWS Lambda.
+3. Set up AWS API Gateway to manage requests to Lambda functions.
+4. Use AWS S3 for file storage (as previously decided).
+5. Implement VPC peering or AWS PrivateLink to securely connect Heroku and AWS environments.
+6. Update CI/CD pipelines to handle deployments to both Heroku and AWS Lambda.
+7. Implement comprehensive logging and monitoring across both environments.
 
 ## Alternatives Considered
-1. Traditional VPS: Offers more control but requires more hands-on management.
-2. Kubernetes (e.g., k3s on a single node): Provides container orchestration benefits but might be overly complex for our current needs.
-3. Managed Container Service (e.g., AWS ECS with Fargate): Offers good scalability but might be more complex and potentially more expensive for our current scale.
-4. Heroku CLI and Heroku.yml: While simpler, using Terraform provides more powerful infrastructure-as-code capabilities and aligns with our team's expertise.
+1. Full Heroku Enterprise deployment: Rejected due to high costs.
+2. Migration to a different single cloud provider: Rejected to minimize disruption and leverage existing Heroku knowledge.
 
 ## Related Decisions
-- Use Auth0 for Artist Authentication in Copper Print Gallery
-- Use PostgreSQL as Database for Copper Print Gallery
-- Use Amazon S3 for File Storage in Copper Print Gallery
-- System requirements specification
-- Use Terraform for Infrastructure Management in Copper Print Gallery
+- Configuration Management Strategy
+- Logging and Monitoring Strategy
+- Use of Amazon S3 for file storage
 
 ## References
 - Heroku Documentation: [https://devcenter.heroku.com/](https://devcenter.heroku.com/)
-- Heroku Postgres: [https://www.heroku.com/postgres](https://www.heroku.com/postgres)
-- Deploying Node.js Apps on Heroku: [https://devcenter.heroku.com/articles/deploying-nodejs](https://devcenter.heroku.com/articles/deploying-nodejs)
-- Heroku Python Support: [https://devcenter.heroku.com/articles/python-support](https://devcenter.heroku.com/articles/python-support)
-- Terraform Heroku Provider: [https://registry.terraform.io/providers/heroku/heroku/latest/docs](https://registry.terraform.io/providers/heroku/heroku/latest/docs)
-- Terraform Documentation: [https://www.terraform.io/docs](https://www.terraform.io/docs)
+- AWS Lambda Documentation: [https://docs.aws.amazon.com/lambda/](https://docs.aws.amazon.com/lambda/)
+- Serverless Framework: [https://www.serverless.com/](https://www.serverless.com/)
