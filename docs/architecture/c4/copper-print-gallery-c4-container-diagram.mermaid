@@ -5,21 +5,21 @@ C4Container
     Person(artist, "Artist", "Content Manager")
 
     System_Boundary(copper_print_gallery, "Copper Print Gallery System") {
-        Container(web_app, "Web Application", "React, Redux", "Provides the public-facing gallery website")
-        Container(artist_web_app, "Artist Web Application", "React, Redux", "Provides content management interface")
-        Container(api_gateway, "API Gateway", "Node.js, Express.js", "Routes requests, handles authentication and rate limiting")
-        Container(content_service, "Content Management Service", "Node.js", "Manages artwork metadata and coordinates image processing")
-        Container(search_service, "Search Service", "Node.js, Elasticsearch", "Provides full-text search capabilities")
-        Container(image_service, "Image Processing Service", "Python, Pillow", "Handles image processing, optimization, and storage")
-        ContainerDb(database, "Database", "PostgreSQL", "Stores user data, artwork metadata, and gallery structure")
+        Container(web_app, "Web Application", "React, Redux, Heroku", "Provides the public-facing gallery website")
+        Container(artist_web_app, "Artist Web Application", "React, Redux, Heroku", "Provides content management interface")
+
+        Container(api_gateway, "API Gateway", "AWS API Gateway", "Routes requests to backend services")
+        Container(content_service, "Content Management Service", "AWS Lambda, Node.js", "Manages artwork metadata and coordinates image processing")
+        Container(search_service, "Search Service", "AWS Lambda, Node.js, Elasticsearch", "Provides full-text search capabilities")
+        Container(image_service, "Image Processing Service", "AWS Lambda, Python, Pillow", "Handles image processing, optimization, and storage")
+
+        ContainerDb(database, "Database", "Amazon RDS, PostgreSQL", "Stores user data, artwork metadata, and gallery structure")
         ContainerDb(file_storage, "File Storage", "Amazon S3", "Stores processed images")
-        ContainerDb(temp_storage, "Temporary Storage", "Amazon S3", "Temporarily stores original images during processing")
     }
 
-    System_Ext(cdn, "Content Delivery Network", "CloudFront", "Serves optimized images and static assets")
+    System_Ext(cdn, "Content Delivery Network", "Amazon CloudFront", "Serves optimized images and static assets")
     System_Ext(auth0, "Auth0", "Authentication Service", "Handles artist authentication and authorization")
-    System_Ext(heroku_logging, "Heroku Logging", "Logplex", "Aggregates logs from all services")
-    System_Ext(heroku_monitoring, "Heroku Monitoring", "Metrics", "Monitors system health and performance")
+    System_Ext(cloudwatch, "AWS CloudWatch", "Logging and Monitoring", "Centralizes logs and metrics from all services")
 
     Rel(user, web_app, "Views artwork")
     Rel(artist, artist_web_app, "Manages content")
@@ -28,31 +28,22 @@ C4Container
     Rel(artist_web_app, api_gateway, "Makes API calls", "JSON/HTTPS")
     Rel(web_app, cdn, "Loads assets from", "HTTPS")
 
-    Rel(api_gateway, auth0, "Authenticates artist", "HTTPS")
+    Rel(api_gateway, auth0, "Validates tokens", "HTTPS")
     Rel(api_gateway, content_service, "Routes requests", "JSON/HTTPS")
     Rel(api_gateway, search_service, "Routes requests", "JSON/HTTPS")
+    Rel(api_gateway, image_service, "Routes requests", "JSON/HTTPS")
 
-    Rel(content_service, image_service, "Requests image processing", "JSON/HTTPS")
     Rel(content_service, database, "Reads from and writes to", "SQL/TCP")
-    Rel(content_service, temp_storage, "Stores original images", "HTTPS")
     Rel(search_service, database, "Reads from", "SQL/TCP")
-    Rel(image_service, temp_storage, "Reads original images", "HTTPS")
-    Rel(image_service, file_storage, "Stores and retrieves processed images", "HTTPS")
+    Rel(image_service, file_storage, "Stores and retrieves images", "HTTPS")
 
     Rel(cdn, file_storage, "Retrieves assets from", "HTTPS")
 
-    Rel(web_app, heroku_logging, "Sends logs", "stdout/stderr")
-    Rel(artist_web_app, heroku_logging, "Sends logs", "stdout/stderr")
-    Rel(api_gateway, heroku_logging, "Sends logs", "stdout/stderr")
-    Rel(content_service, heroku_logging, "Sends logs", "stdout/stderr")
-    Rel(search_service, heroku_logging, "Sends logs", "stdout/stderr")
-    Rel(image_service, heroku_logging, "Sends logs", "stdout/stderr")
-
-    Rel(heroku_monitoring, web_app, "Monitors", "HTTPS")
-    Rel(heroku_monitoring, artist_web_app, "Monitors", "HTTPS")
-    Rel(heroku_monitoring, api_gateway, "Monitors", "HTTPS")
-    Rel(heroku_monitoring, content_service, "Monitors", "HTTPS")
-    Rel(heroku_monitoring, search_service, "Monitors", "HTTPS")
-    Rel(heroku_monitoring, image_service, "Monitors", "HTTPS")
+    Rel(web_app, cloudwatch, "Sends logs and metrics", "HTTPS")
+    Rel(artist_web_app, cloudwatch, "Sends logs and metrics", "HTTPS")
+    Rel(api_gateway, cloudwatch, "Sends logs and metrics", "HTTPS")
+    Rel(content_service, cloudwatch, "Sends logs and metrics", "HTTPS")
+    Rel(search_service, cloudwatch, "Sends logs and metrics", "HTTPS")
+    Rel(image_service, cloudwatch, "Sends logs and metrics", "HTTPS")
 
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
