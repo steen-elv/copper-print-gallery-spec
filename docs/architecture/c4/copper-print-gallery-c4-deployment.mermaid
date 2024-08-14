@@ -1,81 +1,84 @@
 C4Deployment
-    title Copper Print Gallery System - Deployment Diagram (Standard Heroku Environment)
+    title Copper Print Gallery System - Deployment Diagram (Hybrid Heroku-AWS Architecture)
 
     Deployment_Node(dns, "DNS", "Domain Name System") {
-        Container(dns_records, "DNS Records", "A, CNAME", "api.copperprintgallery.com, www.copperprintgallery.com")
+        Container(dns_records, "DNS Records", "A, CNAME", "api.copperprintgallery.com, www.copperprintgallery.com, artist.copperprintgallery.com")
     }
 
     Deployment_Node(aws, "Amazon Web Services (AWS)", "Cloud") {
+        Deployment_Node(api_gateway, "Amazon API Gateway", "API Management") {
+            Container(aws_api_gateway, "API Gateway", "RESTful API", "Routes requests to appropriate Lambda functions")
+        }
+
+        Deployment_Node(lambda, "AWS Lambda", "Serverless Compute") {
+            Container(content_service, "Content Management Service", "Node.js", "Manages artwork metadata and coordinates image processing")
+            Container(search_service, "Search Service", "Node.js", "Provides full-text search capabilities")
+            Container(image_service, "Image Processing Service", "Python", "Handles image processing, optimization, and storage")
+        }
+
         Deployment_Node(s3, "Amazon S3", "Object Storage") {
             Container(file_storage, "File Storage", "S3 Bucket", "Stores processed images")
             Container(temp_storage, "Temporary Storage", "S3 Bucket", "Temporarily stores original images during processing")
         }
-        Deployment_Node(cloudfront, "CloudFront", "CDN") {
+
+        Deployment_Node(cloudfront, "Amazon CloudFront", "CDN") {
             Container(cdn, "Content Delivery Network", "CloudFront Distribution", "Serves optimized images and static assets")
+        }
+
+        Deployment_Node(rds, "Amazon RDS", "Managed Relational Database Service") {
+            ContainerDb(database, "PostgreSQL Database", "PostgreSQL 13", "Stores user data, artwork metadata, and gallery structure")
+        }
+
+        Deployment_Node(cloudwatch, "Amazon CloudWatch", "Monitoring and Logging") {
+            Container(logs, "CloudWatch Logs", "Centralized Logging", "Aggregates logs from all AWS services")
+            Container(metrics, "CloudWatch Metrics", "Monitoring", "Collects and tracks metrics from AWS services")
         }
     }
 
     Deployment_Node(heroku, "Heroku", "Cloud Platform") {
-        Container(heroku_router, "Heroku Router", "Load Balancer, SSL Termination", "Routes traffic to all Heroku apps")
-
-        Deployment_Node(public_web_app, "Public Web App", "Heroku App") {
+        Deployment_Node(public_web_dyno, "Public Web Dyno", "Heroku Web Dyno") {
             Container(web_app, "Web Application", "React", "Serves the public-facing gallery website for anonymous viewing")
         }
-        Deployment_Node(artist_web_app, "Artist Web App", "Heroku App") {
+        Deployment_Node(artist_web_dyno, "Artist Web Dyno", "Heroku Web Dyno") {
             Container(artist_web_app, "Artist Web Application", "React", "Provides secure interface for artist to manage content")
-        }
-        Deployment_Node(api_gateway_app, "API Gateway App", "Heroku App") {
-            Container(api_gateway, "API Gateway", "Node.js, Express.js", "Routes requests, handles authentication, acts as logical reverse proxy")
-        }
-        Deployment_Node(content_app, "Content Management App", "Heroku App") {
-            Container(content_service, "Content Management Service", "Node.js", "Handles content-related API requests")
-        }
-        Deployment_Node(search_app, "Search App", "Heroku App") {
-            Container(search_service, "Search Service", "Node.js, Elasticsearch", "Handles search-related API requests")
-        }
-        Deployment_Node(image_app, "Image Processing App", "Heroku App") {
-            Container(image_service, "Image Processing Service", "Python, Flask", "Handles image processing API requests")
-        }
-        Deployment_Node(worker_app, "Worker App", "Heroku App") {
-            Container(background_jobs, "Background Jobs", "Node.js/Python", "Handles background tasks (e.g., batch processing, indexing)")
-        }
-        Deployment_Node(heroku_postgres, "Heroku Postgres", "Managed Database") {
-            ContainerDb(database, "Database", "PostgreSQL", "Stores user data, artwork metadata, and gallery structure")
-        }
-        Deployment_Node(heroku_addons, "Heroku Add-ons", "Managed Services") {
-            Container(heroku_logging, "Heroku Logging", "Logplex", "Aggregates logs from all services")
-            Container(heroku_monitoring, "Heroku Monitoring", "Metrics", "Monitors system health and performance")
-            Container(auth0, "Auth0", "Authentication Add-on", "Handles artist authentication and authorization")
         }
     }
 
-    Rel(dns_records, heroku_router, "Directs to", "DNS")
+    Deployment_Node(auth0, "Auth0", "Identity as a Service") {
+        Container(auth0_service, "Auth0", "Authentication Service", "Handles artist authentication and authorization")
+    }
 
-    Rel(heroku_router, web_app, "Routes traffic", "HTTPS")
-    Rel(heroku_router, artist_web_app, "Routes traffic", "HTTPS")
-    Rel(heroku_router, api_gateway, "Routes traffic", "HTTPS")
-    Rel(heroku_router, content_service, "Routes traffic (restricted)", "HTTPS")
-    Rel(heroku_router, search_service, "Routes traffic (restricted)", "HTTPS")
-    Rel(heroku_router, image_service, "Routes traffic (restricted)", "HTTPS")
+    Rel(dns_records, aws_api_gateway, "Directs API requests to", "DNS")
+    Rel(dns_records, web_app, "Directs public web requests to", "DNS")
+    Rel(dns_records, artist_web_app, "Directs artist web requests to", "DNS")
 
-    Rel(api_gateway, content_service, "Forwards authenticated requests", "HTTPS")
-    Rel(api_gateway, search_service, "Forwards authenticated requests", "HTTPS")
-    Rel(api_gateway, image_service, "Forwards authenticated requests", "HTTPS")
-
-    Rel(content_service, background_jobs, "Schedules tasks", "HTTPS")
-    Rel(search_service, background_jobs, "Schedules indexing", "HTTPS")
-    Rel(image_service, background_jobs, "Schedules batch processing", "HTTPS")
-
+    Rel(web_app, aws_api_gateway, "Makes API calls", "HTTPS")
+    Rel(artist_web_app, aws_api_gateway, "Makes API calls", "HTTPS")
     Rel(web_app, cdn, "Loads assets from", "HTTPS")
     Rel(artist_web_app, cdn, "Loads assets from", "HTTPS")
 
-    Rel(api_gateway, auth0, "Authenticates artist", "HTTPS")
+    Rel(aws_api_gateway, content_service, "Invokes", "HTTPS")
+    Rel(aws_api_gateway, search_service, "Invokes", "HTTPS")
+    Rel(aws_api_gateway, image_service, "Invokes", "HTTPS")
 
     Rel(content_service, database, "Reads from and writes to", "SSL/TLS")
     Rel(search_service, database, "Reads from", "SSL/TLS")
-    Rel(background_jobs, temp_storage, "Reads/Writes images", "HTTPS")
-    Rel(background_jobs, file_storage, "Stores processed images", "HTTPS")
+    Rel(image_service, temp_storage, "Reads original images", "HTTPS")
+    Rel(image_service, file_storage, "Stores processed images", "HTTPS")
 
     Rel(cdn, file_storage, "Retrieves assets from", "HTTPS")
+
+    Rel(aws_api_gateway, auth0_service, "Validates tokens with", "HTTPS")
+    Rel(artist_web_app, auth0_service, "Authenticates via", "HTTPS")
+
+    Rel(content_service, logs, "Sends logs to", "AWS Internal")
+    Rel(search_service, logs, "Sends logs to", "AWS Internal")
+    Rel(image_service, logs, "Sends logs to", "AWS Internal")
+    Rel(aws_api_gateway, logs, "Sends logs to", "AWS Internal")
+
+    Rel(content_service, metrics, "Sends metrics to", "AWS Internal")
+    Rel(search_service, metrics, "Sends metrics to", "AWS Internal")
+    Rel(image_service, metrics, "Sends metrics to", "AWS Internal")
+    Rel(aws_api_gateway, metrics, "Sends metrics to", "AWS Internal")
 
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")
