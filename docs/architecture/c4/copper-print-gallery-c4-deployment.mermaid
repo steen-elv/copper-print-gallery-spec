@@ -1,19 +1,5 @@
 C4Deployment
-    title Copper Print Gallery System - Deployment Diagram (Updated DNS and Auth0)
-
-    Deployment_Node(heroku, "Heroku", "Cloud Platform") {
-        Deployment_Node(public_web_dyno, "Public Web Dyno", "Heroku Web Dyno") {
-            Container(web_app, "Web Application", "React", "Serves the public-facing gallery website for anonymous viewing")
-        }
-        Deployment_Node(artist_web_dyno, "Artist Web Dyno", "Heroku Web Dyno") {
-            Container(artist_web_app, "Artist Web Application", "React", "Provides secure interface for artist to manage content")
-        }
-    }
-
-    Deployment_Node(auth0, "Auth0", "Identity as a Service") {
-        Container(auth0_service, "Auth0", "Authentication Service", "Handles artist authentication and authorization")
-    }
-
+    title Copper Print Gallery System - Deployment Diagram (Managed by Terraform)
 
     Deployment_Node(aws, "Amazon Web Services (AWS)", "Cloud") {
         Deployment_Node(route53, "Amazon Route 53", "DNS Service") {
@@ -22,6 +8,7 @@ C4Deployment
 
         Deployment_Node(api_gateway, "Amazon API Gateway", "API Management") {
             Container(aws_api_gateway, "API Gateway", "RESTful API", "Routes requests to appropriate Lambda functions")
+            Container(auth_middleware, "Auth Middleware", "Lambda Authorizer", "Validates Auth0 tokens")
         }
 
         Deployment_Node(lambda, "AWS Lambda", "Serverless Compute") {
@@ -49,6 +36,18 @@ C4Deployment
         }
     }
 
+    Deployment_Node(heroku, "Heroku", "Cloud Platform") {
+        Deployment_Node(public_web_dyno, "Public Web Dyno", "Heroku Web Dyno") {
+            Container(web_app, "Web Application", "React", "Serves the public-facing gallery website for anonymous viewing")
+        }
+        Deployment_Node(artist_web_dyno, "Artist Web Dyno", "Heroku Web Dyno") {
+            Container(artist_web_app, "Artist Web Application", "React", "Provides secure interface for artist to manage content")
+        }
+        Deployment_Node(heroku_addons, "Heroku Add-ons", "Managed Services") {
+            Container(auth0_addon, "Auth0 Add-on", "Authentication Service", "Handles artist authentication and authorization")
+        }
+    }
+
     Rel(dns_records, aws_api_gateway, "Routes API requests to", "DNS")
     Rel(dns_records, web_app, "Routes public web requests to", "DNS")
     Rel(dns_records, artist_web_app, "Routes artist web requests to", "DNS")
@@ -57,6 +56,9 @@ C4Deployment
     Rel(artist_web_app, aws_api_gateway, "Makes API calls", "HTTPS")
     Rel(web_app, cdn, "Loads assets from", "HTTPS")
     Rel(artist_web_app, cdn, "Loads assets from", "HTTPS")
+
+    Rel(aws_api_gateway, auth_middleware, "Uses for authentication", "Internal")
+    Rel(auth_middleware, auth0_addon, "Validates tokens with", "HTTPS")
 
     Rel(aws_api_gateway, content_service, "Invokes", "HTTPS")
     Rel(aws_api_gateway, search_service, "Invokes", "HTTPS")
@@ -69,8 +71,7 @@ C4Deployment
 
     Rel(cdn, file_storage, "Retrieves assets from", "HTTPS")
 
-    Rel(aws_api_gateway, auth0_service, "Validates tokens with", "HTTPS")
-    Rel(artist_web_app, auth0_service, "Authenticates via", "HTTPS")
+    Rel(artist_web_app, auth0_addon, "Authenticates via", "HTTPS")
 
     Rel(content_service, logs, "Sends logs to", "AWS Internal")
     Rel(search_service, logs, "Sends logs to", "AWS Internal")
