@@ -1,11 +1,25 @@
 C4Deployment
-    title Copper Print Gallery System - Deployment Diagram (Hybrid Heroku-AWS Architecture)
+    title Copper Print Gallery System - Deployment Diagram (Updated DNS and Auth0)
 
-    Deployment_Node(dns, "DNS", "Domain Name System") {
-        Container(dns_records, "DNS Records", "A, CNAME", "api.copperprintgallery.com, www.copperprintgallery.com, artist.copperprintgallery.com")
+    Deployment_Node(heroku, "Heroku", "Cloud Platform") {
+        Deployment_Node(public_web_dyno, "Public Web Dyno", "Heroku Web Dyno") {
+            Container(web_app, "Web Application", "React", "Serves the public-facing gallery website for anonymous viewing")
+        }
+        Deployment_Node(artist_web_dyno, "Artist Web Dyno", "Heroku Web Dyno") {
+            Container(artist_web_app, "Artist Web Application", "React", "Provides secure interface for artist to manage content")
+        }
     }
 
+    Deployment_Node(auth0, "Auth0", "Identity as a Service") {
+        Container(auth0_service, "Auth0", "Authentication Service", "Handles artist authentication and authorization")
+    }
+
+
     Deployment_Node(aws, "Amazon Web Services (AWS)", "Cloud") {
+        Deployment_Node(route53, "Amazon Route 53", "DNS Service") {
+            Container(dns_records, "DNS Records", "A, CNAME, ALIAS", "api.copperprintgallery.com, www.copperprintgallery.com, artist.copperprintgallery.com")
+        }
+
         Deployment_Node(api_gateway, "Amazon API Gateway", "API Management") {
             Container(aws_api_gateway, "API Gateway", "RESTful API", "Routes requests to appropriate Lambda functions")
         }
@@ -35,22 +49,9 @@ C4Deployment
         }
     }
 
-    Deployment_Node(heroku, "Heroku", "Cloud Platform") {
-        Deployment_Node(public_web_dyno, "Public Web Dyno", "Heroku Web Dyno") {
-            Container(web_app, "Web Application", "React", "Serves the public-facing gallery website for anonymous viewing")
-        }
-        Deployment_Node(artist_web_dyno, "Artist Web Dyno", "Heroku Web Dyno") {
-            Container(artist_web_app, "Artist Web Application", "React", "Provides secure interface for artist to manage content")
-        }
-    }
-
-    Deployment_Node(auth0, "Auth0", "Identity as a Service") {
-        Container(auth0_service, "Auth0", "Authentication Service", "Handles artist authentication and authorization")
-    }
-
-    Rel(dns_records, aws_api_gateway, "Directs API requests to", "DNS")
-    Rel(dns_records, web_app, "Directs public web requests to", "DNS")
-    Rel(dns_records, artist_web_app, "Directs artist web requests to", "DNS")
+    Rel(dns_records, aws_api_gateway, "Routes API requests to", "DNS")
+    Rel(dns_records, web_app, "Routes public web requests to", "DNS")
+    Rel(dns_records, artist_web_app, "Routes artist web requests to", "DNS")
 
     Rel(web_app, aws_api_gateway, "Makes API calls", "HTTPS")
     Rel(artist_web_app, aws_api_gateway, "Makes API calls", "HTTPS")
