@@ -1,69 +1,61 @@
-# ADR: Use Heroku's Built-in Logging and Monitoring Tools for Copper Print Gallery
+# ADR: Use AWS CloudWatch for Logging and Monitoring in Copper Print Gallery
 
 ## Date
-2024-07-31
-
-## Status
-Proposed
+2024-07-31 (Updated: 2024-08-14)
 
 ## Context
-The Copper Print Gallery system requires logging and monitoring capabilities to ensure system health and facilitate troubleshooting. The system is small-scale (less than 100 daily users, one artist) and has a single artist with direct access to system management. The system requirements specify that we should design and implement based on current known requirements, without specific provisions for future expansion.
+The Copper Print Gallery system requires logging and monitoring capabilities to ensure system health and facilitate troubleshooting. Our hybrid architecture, with frontend services on Heroku and backend services on AWS, presents challenges for implementing a unified logging and monitoring solution.
 
 ## Decision
-We have decided to use Heroku's built-in logging and monitoring tools without any additional add-ons for the initial deployment of the Copper Print Gallery system.
+We have decided to use AWS CloudWatch as our primary logging and monitoring solution for the Copper Print Gallery system, with log forwarding from Heroku to CloudWatch.
 
 ## Rationale
-1. Scale Appropriateness: Heroku's basic tools are sufficient for our current small-scale system.
-2. Simplicity: Built-in tools require minimal setup and maintenance.
-3. Cost-Effectiveness: Avoiding additional add-ons keeps costs down for the initial deployment.
-4. Fast Feedback: With only one artist managing the system, we can expect quick feedback on any issues.
-5. Alignment with Requirements: This approach adheres to the specification of implementing based on current known requirements.
-6. Flexibility: We can easily extend or replace this solution if it proves inadequate in production.
+1. Centralization: CloudWatch provides a unified platform for logs and metrics from both AWS services and external sources.
+2. Integration: Native integration with our AWS-based backend services.
+3. Scalability: CloudWatch can handle logging and monitoring needs as our system grows.
+4. Cost-effectiveness: Consolidating on AWS services may be more cost-effective than using multiple third-party solutions.
+5. Flexibility: Allows for custom metrics and logs from both Heroku and AWS components.
+
+## Implementation Strategy
+1. Configure AWS Lambda functions and API Gateway to log directly to CloudWatch Logs.
+2. Set up a log drain in Heroku to forward logs from frontend applications to CloudWatch Logs.
+3. Implement custom metrics publication from Heroku applications to CloudWatch.
+4. Develop a consistent log format across all services, including correlation IDs for tracing requests across the system.
+5. Create CloudWatch Dashboards for visualizing key metrics from both Heroku and AWS components.
+6. Set up CloudWatch Alarms for critical metrics and log patterns.
 
 ## Consequences
 
 ### Positive
-- Simplified system management with integrated logging and monitoring.
-- Reduced initial complexity and cost.
-- Easier debugging and troubleshooting through Heroku's dashboard and CLI.
-- Sufficient for identifying common issues like application crashes or performance problems.
+- Unified view of system behavior and performance across our hybrid architecture.
+- Simplified operations by centralizing on AWS tools.
+- Powerful querying and visualization capabilities for logs and metrics.
 
 ### Negative
-- Limited log retention (typically 1500 most recent lines).
-- Basic alerting capabilities may not cover all potential scenarios.
-- Potential lack of detailed insights into custom metrics or specific component behavior.
+- Increased complexity in Heroku application configuration for log forwarding and metric publication.
+- Learning curve for team members not familiar with CloudWatch.
 
 ### Risks
-- Possibility of missing critical issues due to limited monitoring capabilities.
-- May need to implement a more robust solution sooner than anticipated if problems arise.
+- Potential increased AWS costs for log ingestion, storage, and processing.
+- Possible delays or data loss in log forwarding from Heroku to CloudWatch.
 
-## Implementation Notes
-1. Ensure all services in the Copper Print Gallery system log important events and errors to stdout/stderr for Heroku to capture.
-2. Implement meaningful log messages, especially for critical operations like image processing.
-3. Use Heroku's dashboard and CLI tools to regularly check logs and system metrics.
-4. Set up basic alerts through Heroku for critical issues like application crashes.
-5. Document the logging approach for all team members, including how to access and interpret logs.
-6. Establish a process for the artist to report any issues or unexpected behavior promptly.
+## Mitigation Strategies
+- Implement robust error handling and retry mechanisms in log forwarding and metric publication processes.
+- Regularly audit logging and monitoring setup to ensure all components are properly integrated.
+- Provide team training on CloudWatch tools and best practices.
+- Implement log retention policies and metric filter to manage costs.
 
 ## Monitoring Plan
-1. Daily: Quick check of Heroku dashboard for any obvious issues.
-2. Weekly: More detailed review of logs and performance metrics.
-3. Monthly: Comprehensive system health check and discussion with the artist about any concerns.
-
-## Future Considerations
-- If logging proves inadequate in production, consider implementing a log drain to an external service for longer retention and more advanced analysis.
-- Regularly reassess the need for more advanced monitoring tools based on system performance and the artist's feedback.
-- Be prepared to quickly implement additional monitoring solutions if critical issues arise that are not easily diagnosed with the current tools.
-
-## Alternatives Considered
-1. Implementing a full ELK (Elasticsearch, Logstash, Kibana) stack: Deemed overly complex for current needs.
-2. Using third-party monitoring add-ons (e.g., New Relic, Datadog): Considered unnecessary given the current system scale and requirements.
+1. Real-time: Set up CloudWatch Alarms for immediate notification of critical issues.
+2. Daily: Review CloudWatch Dashboards for system health and performance trends.
+3. Weekly: Analyze log data for patterns and potential optimizations.
+4. Monthly: Review and adjust logging and monitoring strategy based on gathered insights.
 
 ## Related Decisions
-- Heroku Deployment Strategy for Copper Print Gallery
-- System requirements specification
-- Overall system architecture (C4 container and component diagrams)
+- Hybrid Deployment Strategy with AWS-based Backend
+- Use of Auth0 for authentication (for monitoring authentication-related events)
 
 ## References
-- Heroku Logging: [https://devcenter.heroku.com/articles/logging](https://devcenter.heroku.com/articles/logging)
-- Heroku Metrics: [https://devcenter.heroku.com/articles/metrics](https://devcenter.heroku.com/articles/metrics)
+- AWS CloudWatch: [https://aws.amazon.com/cloudwatch/](https://aws.amazon.com/cloudwatch/)
+- Heroku Log Drains: [https://devcenter.heroku.com/articles/log-drains](https://devcenter.heroku.com/articles/log-drains)
+- CloudWatch Logs Insights: [https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html)
