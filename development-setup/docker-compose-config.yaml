@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: copperprint
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: localdevpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init-scripts:/docker-entrypoint-initdb.d
+      - pgdata:/var/lib/postgresql/data
+
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4566-4599:4566-4599"
+      - "8080:8080"
+    environment:
+      - SERVICES=s3,lambda,apigateway
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+    volumes:
+      - ./localstack:/tmp/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  content-service:
+    build: 
+      context: ./copper-print-gallery-content-service
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./copper-print-gallery-content-service:/app
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=db
+      - AWS_ENDPOINT=http://localstack:4566
+
+  search-service:
+    build:
+      context: ./copper-print-gallery-search-service
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./copper-print-gallery-search-service:/app
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=db
+      - AWS_ENDPOINT=http://localstack:4566
+
+  image-service:
+    build:
+      context: ./copper-print-gallery-image-service
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./copper-print-gallery-image-service:/app
+    environment:
+      - PYTHON_ENV=development
+      - DB_HOST=db
+      - AWS_ENDPOINT=http://localstack:4566
+
+volumes:
+  pgdata:
+
