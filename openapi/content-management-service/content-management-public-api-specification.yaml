@@ -25,6 +25,7 @@ servers:
 paths:
   /galleries:
     get:
+      operationId: getGalleries
       summary: List copper print galleries
       description: Retrieves a list of all copper print galleries
       parameters:
@@ -39,13 +40,12 @@ paths:
 
   /galleries/{galleryId}:
     get:
+      operationId: getGallery
       summary: Get copper print gallery details
       description: Retrieves details of a specific copper print gallery, including ordered prints
       parameters:
         - $ref: '#/components/parameters/galleryId'
         - $ref: '#/components/parameters/language'
-        - $ref: '#/components/parameters/page'
-        - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/GalleryDetailResponse'
@@ -54,6 +54,7 @@ paths:
 
   /prints:
     get:
+      operationId: getPrints
       summary: List copper prints
       description: Retrieves a list of all copper prints
       parameters:
@@ -73,6 +74,7 @@ paths:
 
   /prints/{printId}:
     get:
+      operationId: getPrint
       summary: Get copper print details
       description: Retrieves details of a specific copper print
       parameters:
@@ -343,9 +345,6 @@ components:
                 title: "Nyhavn Canal"
                 thumbnailUrl: "https://cdn.copperprintgallery.com/thumbnails/nyhavn-canal-etching.jpg"
                 order: 2
-            totalCount: 15
-            currentPage: 1
-            totalPages: 1
 
     PrintListResponse:
       description: Successful response with list of prints
