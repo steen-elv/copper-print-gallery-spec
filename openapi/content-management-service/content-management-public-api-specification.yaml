@@ -52,7 +52,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /prints:
+  /prints/{galleryId}:
     get:
       operationId: getPrints
       summary: List copper prints
