@@ -25,6 +25,7 @@ servers:
 paths:
   /galleries:
     get:
+      operationId: getArtistGalleries
       summary: List artist's galleries
       description: Retrieves a list of all galleries owned by the authenticated artist
       parameters:
@@ -38,6 +39,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
     post:
+      operationId: createGallery
       summary: Create a new gallery
       description: Creates a new gallery for the authenticated artist
       requestBody:
@@ -52,6 +54,7 @@ paths:
 
   /galleries/{galleryId}:
     get:
+      operationId: getArtisGalleryDetails
       summary: Get gallery details
       description: Retrieves details of a specific gallery owned by the authenticated artist
       parameters:
@@ -66,6 +69,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     put:
+      operationId: updateGallery
       summary: Update a gallery
       description: Updates an existing gallery owned by the authenticated artist
       parameters:
@@ -84,6 +88,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     delete:
+      operationId: deleteGallery
       summary: Delete a gallery
       description: Deletes a gallery owned by the authenticated artist
       parameters:
@@ -100,6 +105,7 @@ paths:
 
   /galleries/{galleryId}/prints:
     get:
+      operationId: getGalleryPrints
       summary: Get prints in a gallery with their order
       description: Retrieves a list of prints in the specified gallery, including their order
       parameters:
@@ -117,6 +123,7 @@ paths:
           $ref: '#/components/responses/NotFound'
 
     put:
+      operationId: updatePrintOrder
       summary: Update print order in a gallery
       description: Updates the order of prints within the specified gallery
       parameters:
@@ -137,6 +144,7 @@ paths:
 
   /galleries/{galleryId}/prints/{printId}:
     post:
+      operationId: addPrintToGallery
       summary: Add a print to a gallery
       description: Adds a print to the specified gallery at a specific position
       parameters:
@@ -159,6 +167,7 @@ paths:
           description: Print already exists in the gallery
 
     delete:
+      operationId: deletePrintFromGallery
       summary: Remove a print from a gallery
       description: Removes a print from the specified gallery
       parameters:
@@ -176,6 +185,7 @@ paths:
 
   /prints:
     get:
+      operationId: getArtistPrints
       summary: List artist's prints
       description: Retrieves a list of all prints created by the authenticated artist
       parameters:
@@ -194,6 +204,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
     post:
+      operationId: createPrint
       summary: Create a new print
       description: Creates a new print for the authenticated artist
       requestBody:
@@ -208,6 +219,7 @@ paths:
 
   /prints/{printId}:
     get:
+      operationId: getArtistPrintDetails
       summary: Get print details
       description: Retrieves details of a specific print created by the authenticated artist
       parameters:
@@ -222,6 +234,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     put:
+      operationId: updatePrint
       summary: Update a print
       description: Updates an existing print created by the authenticated artist
       parameters:
@@ -240,6 +253,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     delete:
+      operationId: deletePrint
       summary: Delete a print
       description: Deletes a print created by the authenticated artist
       parameters:
