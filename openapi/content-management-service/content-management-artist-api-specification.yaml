@@ -5,7 +5,7 @@ info:
   description: API for artists to manage their galleries and copper print artworks in the Copper Print Gallery system
 
 servers:
-  - url: '{protocol}://{environment}.artist.{domain}/api/v1'
+  - url: '{protocol}://{environment}.artist.{domain}/api/v1/artist'
     variables:
       protocol:
         enum:
@@ -26,6 +26,7 @@ paths:
   /galleries:
     get:
       operationId: getArtistGalleries
+      x-eov-operation-handler: artistController
       summary: List artist's galleries
       description: Retrieves a list of all galleries owned by the authenticated artist
       parameters:
@@ -42,6 +43,14 @@ paths:
       operationId: createGallery
       summary: Create a new gallery
       description: Creates a new gallery for the authenticated artist
+      parameters:
+        - in: query
+          name: language
+          schema:
+            type: string
+            enum: [ en, da ]
+          description: >
+            Language code for the gallery title and description (default: en)
       requestBody:
         $ref: '#/components/requestBodies/GalleryCreate'
       responses:
@@ -55,6 +64,7 @@ paths:
   /galleries/{galleryId}:
     get:
       operationId: getArtisGalleryDetails
+      x-eov-operation-handler: artistController
       summary: Get gallery details
       description: Retrieves details of a specific gallery owned by the authenticated artist
       parameters:
@@ -70,10 +80,18 @@ paths:
           $ref: '#/components/responses/NotFound'
     put:
       operationId: updateGallery
+      x-eov-operation-handler: artistController
       summary: Update a gallery
       description: Updates an existing gallery owned by the authenticated artist
       parameters:
         - $ref: '#/components/parameters/galleryId'
+        - in: query
+          name: language
+          schema:
+            type: string
+            enum: [ en, da ]
+          description: >
+            Language code for the gallery title and description (default: en)
       requestBody:
         $ref: '#/components/requestBodies/GalleryUpdate'
       responses:
@@ -89,6 +107,7 @@ paths:
           $ref: '#/components/responses/NotFound'
     delete:
       operationId: deleteGallery
+      x-eov-operation-handler: artistController
       summary: Delete a gallery
       description: Deletes a gallery owned by the authenticated artist
       parameters:
@@ -106,6 +125,7 @@ paths:
   /galleries/{galleryId}/prints:
     get:
       operationId: getGalleryPrints
+      x-eov-operation-handler: artistController
       summary: Get prints in a gallery with their order
       description: Retrieves a list of prints in the specified gallery, including their order
       parameters:
@@ -124,6 +144,7 @@ paths:
 
     put:
       operationId: updatePrintOrder
+      x-eov-operation-handler: artistController
       summary: Update print order in a gallery
       description: Updates the order of prints within the specified gallery
       parameters:
@@ -145,6 +166,7 @@ paths:
   /galleries/{galleryId}/prints/{printId}:
     post:
       operationId: addPrintToGallery
+      x-eov-operation-handler: artistController
       summary: Add a print to a gallery
       description: Adds a print to the specified gallery at a specific position
       parameters:
@@ -168,6 +190,7 @@ paths:
 
     delete:
       operationId: deletePrintFromGallery
+      x-eov-operation-handler: artistController
       summary: Remove a print from a gallery
       description: Removes a print from the specified gallery
       parameters:
@@ -186,6 +209,7 @@ paths:
   /prints:
     get:
       operationId: getArtistPrints
+      x-eov-operation-handler: artistController
       summary: List artist's prints
       description: Retrieves a list of all prints created by the authenticated artist
       parameters:
@@ -205,6 +229,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'
     post:
       operationId: createPrint
+      x-eov-operation-handler: artistController
       summary: Create a new print
       description: Creates a new print for the authenticated artist
       requestBody:
@@ -220,6 +245,7 @@ paths:
   /prints/{printId}:
     get:
       operationId: getArtistPrintDetails
+      x-eov-operation-handler: artistController
       summary: Get print details
       description: Retrieves details of a specific print created by the authenticated artist
       parameters:
@@ -235,6 +261,7 @@ paths:
           $ref: '#/components/responses/NotFound'
     put:
       operationId: updatePrint
+      x-eov-operation-handler: artistController
       summary: Update a print
       description: Updates an existing print created by the authenticated artist
       parameters:
@@ -254,6 +281,7 @@ paths:
           $ref: '#/components/responses/NotFound'
     delete:
       operationId: deletePrint
+      x-eov-operation-handler: artistController
       summary: Delete a print
       description: Deletes a print created by the authenticated artist
       parameters:
