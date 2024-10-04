@@ -1,5 +1,6 @@
 erDiagram
     ARTIST ||--o{ GALLERY : creates
+    ARTIST ||--o{ ARTWORK : creates
     GALLERY ||--o{ GALLERY_ARTWORK : contains
     GALLERY_ARTWORK }o--|| ARTWORK : references
     ARTWORK ||--o{ IMAGE : has
@@ -47,6 +48,7 @@ erDiagram
 
     ARTWORK {
         int id PK
+        int artist_id FK
         datetime created_at
         datetime updated_at
         datetime last_indexed
