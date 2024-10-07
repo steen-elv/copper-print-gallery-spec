@@ -24,18 +24,18 @@ C4Component
         Component(rate_limiter, "Rate Limiter", "API Gateway", "Limits request rates")
     }
 
-    Container_Boundary(content_service, "Content Management Service") {
-        Component(content_handler, "Content Handler", "AWS Lambda", "Handles content-related operations")
-        Component(metadata_manager, "Metadata Manager", "Node.js", "Manages artwork metadata")
-        Component(gallery_organizer, "Gallery Organizer", "Node.js", "Organizes galleries and artwork order")
-        Component(content_logger, "Logger", "Winston", "Logs Content Service events and errors")
-    }
-
     Container_Boundary(search_service, "Search Service") {
         Component(search_handler, "Search Handler", "AWS Lambda", "Handles search requests")
         Component(query_builder, "Query Builder", "Elasticsearch DSL", "Builds complex search queries")
         Component(results_formatter, "Results Formatter", "Node.js", "Formats search results")
         Component(search_logger, "Logger", "Winston", "Logs Search Service events and errors")
+    }
+
+    Container_Boundary(content_service, "Content Management Service") {
+        Component(content_handler, "Content Handler", "AWS Lambda", "Handles content-related operations")
+        Component(metadata_manager, "Metadata Manager", "Node.js", "Manages artwork metadata")
+        Component(gallery_organizer, "Gallery Organizer", "Node.js", "Organizes galleries and artwork order")
+        Component(content_logger, "Logger", "Winston", "Logs Content Service events and errors")
     }
 
     Container_Boundary(image_service, "Image Processing Service") {
@@ -76,6 +76,7 @@ C4Component
     Rel(search_handler, results_formatter, "Uses")
     Rel(search_handler, search_logger, "Logs events")
 
+    Rel(image_handler, content_handler, "Sends processing result")
     Rel(image_handler, image_processor, "Uses")
     Rel(image_handler, format_converter, "Uses")
     Rel(image_handler, metadata_extractor, "Uses")
@@ -89,9 +90,10 @@ C4Component
     Rel(auth_middleware, auth0, "Validates tokens with", "HTTPS")
     Rel(request_router, content_handler, "Routes to", "HTTPS")
     Rel(request_router, search_handler, "Routes to", "HTTPS")
-    Rel(request_router, image_handler, "Routes to", "HTTPS")
 
     Rel(content_handler, database, "Reads/Writes", "SQL")
+    Rel(content_handler, file_storage, "Writes original image", "HTTPS")
+    Rel(content_handler, image_handler, "Initiate Image processing", "HTTPS")
     Rel(search_handler, database, "Reads", "SQL")
     Rel(storage_manager, file_storage, "Reads/Writes", "HTTPS")
 
@@ -103,4 +105,4 @@ C4Component
     Rel(search_logger, cloudwatch, "Sends logs", "HTTPS")
     Rel(image_logger, cloudwatch, "Sends logs", "HTTPS")
 
-    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="3")

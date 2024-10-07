@@ -10,16 +10,16 @@ C4Container
 
         Container(api_gateway, "API Gateway", "AWS API Gateway", "Routes requests to backend services")
         Container(content_service, "Content Management Service", "AWS Lambda, Node.js", "Manages artwork metadata and coordinates image processing")
-        Container(search_service, "Search Service", "AWS Lambda, Node.js, Elasticsearch", "Provides full-text search capabilities")
         Container(image_service, "Image Processing Service", "AWS Lambda, Python, Pillow", "Handles image processing, optimization, and storage")
+        Container(search_service, "Search Service", "AWS Lambda, Node.js, Elasticsearch", "Provides full-text search capabilities")
 
-        ContainerDb(database, "Database", "Amazon RDS, PostgreSQL", "Stores user data, artwork metadata, and gallery structure")
         ContainerDb(file_storage, "File Storage", "Amazon S3", "Stores processed images")
+        ContainerDb(database, "Database", "Amazon RDS, PostgreSQL", "Stores user data, artwork metadata, and gallery structure")
     }
 
+    System_Ext(cloudwatch, "AWS CloudWatch", "Logging and Monitoring", "Centralizes logs and metrics from all services")
     System_Ext(cdn, "Content Delivery Network", "Amazon CloudFront", "Serves optimized images and static assets")
     System_Ext(auth0, "Auth0", "Authentication Service", "Handles artist authentication and authorization")
-    System_Ext(cloudwatch, "AWS CloudWatch", "Logging and Monitoring", "Centralizes logs and metrics from all services")
 
     Rel(user, web_app, "Views artwork")
     Rel(artist, artist_web_app, "Manages content")
@@ -31,11 +31,13 @@ C4Container
     Rel(api_gateway, auth0, "Validates tokens", "HTTPS")
     Rel(api_gateway, content_service, "Routes requests", "JSON/HTTPS")
     Rel(api_gateway, search_service, "Routes requests", "JSON/HTTPS")
-    Rel(api_gateway, image_service, "Routes requests", "JSON/HTTPS")
 
     Rel(content_service, database, "Reads from and writes to", "SQL/TCP")
+    Rel(content_service, file_storage, "Stores original images", "HTTPS")
+    Rel(content_service, image_service, "Initiate image processing", "HTTPS")
     Rel(search_service, database, "Reads from", "SQL/TCP")
     Rel(image_service, file_storage, "Stores and retrieves images", "HTTPS")
+    Rel(image_service, content_service, "Send image processing result", "HTTPS")
 
     Rel(cdn, file_storage, "Retrieves assets from", "HTTPS")
 
