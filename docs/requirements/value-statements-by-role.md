@@ -123,3 +123,25 @@ So that we can protect our artists' intellectual property.
 As a business stakeholder,
 I want the system to be scalable,
 So that we can accommodate future growth and new requirements.
+
+## Accessibility Users
+
+As a screen reader user,
+I want proper heading structure and ARIA landmarks,
+So that I can efficiently navigate through the galleries and understand the page organization.
+
+As a keyboard-only user,
+I want to access all functionality without using a mouse,
+So that I can fully interact with the gallery regardless of my input method.
+
+As a user with visual impairments,
+I want sufficient color contrast and resizable text,
+So that I can comfortably read and understand all content.
+
+As a user with slower internet connection,
+I want progressive image loading,
+So that I can start viewing content without waiting for all images to load completely.
+
+As a user with cognitive disabilities,
+I want clear, consistent navigation and layout,
+So that I can easily understand how to use the gallery without cognitive overload.
